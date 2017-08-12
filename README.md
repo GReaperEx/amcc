@@ -1,0 +1,2 @@
+# amcc
+Another Minecraft Clone
