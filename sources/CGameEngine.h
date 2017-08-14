@@ -12,7 +12,7 @@
 #include "CTextureManager.h"
 #include "CCamera.h"
 
-#include "CTestQuad.h"
+#include "CChunkManager.h"
 
 class CGameEngine
 {
@@ -67,7 +67,7 @@ private:
 
     Uint32 lastUpdate;
 
-    CTestQuad myQuad;
+    CChunkManager chunkManager;
 };
 
 #endif // C_GAME_ENGINE_H

@@ -25,10 +25,8 @@ void CGameEngine::renderAll()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shaderManager.use("default");
-
     // Draw stuff here
-    myQuad.render(shaderManager, vp);
+    chunkManager.renderChunks(shaderManager, vp);
 
     SDL_GL_SwapWindow(mainWindow);
 }
@@ -85,12 +83,13 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     }
 
     camera.setAspectRatio(windowWidth/(float)windowHeight);
+    camera.setPosition(glm::vec3(0, 150, 0));
     cameraEnabled = true;
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     lastUpdate = SDL_GetTicks();
 
-    myQuad.init(textureManager);
+    chunkManager.init(textureManager);
 }
 
 void CGameEngine::clearState()

@@ -16,23 +16,30 @@ public:
         }
     }
 
-    void addTexture(const std::string& path, bool genMipmaps = true,
-                                            GLenum magFilter = GL_LINEAR,
-                                            GLenum minFilter = GL_LINEAR_MIPMAP_LINEAR,
+    CTexture* getTexture(const std::string& path, bool genMipmaps = true,
+                                            GLenum magFilter = GL_NEAREST,
+                                            GLenum minFilter = GL_NEAREST_MIPMAP_NEAREST,
                                             GLenum wrapS = GL_REPEAT,
                                             GLenum wrapT = GL_REPEAT) {
-        textureMap[path] = new CTexture(path, genMipmaps, magFilter, minFilter, wrapS, wrapT);
+        auto it = textureMap.find(path);
+        if (it != textureMap.end()) {
+            it->second->grab();
+            return it->second;
+        }
+
+        CTexture *newTexture = new CTexture(path, genMipmaps, magFilter, minFilter, wrapS, wrapT);
+        textureMap[path] = newTexture;
+
+        newTexture->grab();
+        return newTexture;
     }
 
     void remTexture(const std::string& path) {
-        textureMap[path]->drop();
-        textureMap.erase(path);
-    }
-
-    CTexture* getTexture(const std::string& path) {
-        CTexture *ptr = textureMap[path];
-        ptr->grab();
-        return ptr;
+        auto it = textureMap.find(path);
+        if (it != textureMap.end()) {
+            it->second->drop();
+            textureMap.erase(it);
+        }
     }
 
 private:
