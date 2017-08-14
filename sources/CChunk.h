@@ -24,10 +24,12 @@ public:
     static const int CHUNK_HEIGHT = 256;
 
 public:
-    CChunk() {
+    CChunk(const glm::vec3& gPos) {
+        position = gPos;
         glGenBuffers(3, bufferIDs);
     }
-    CChunk(const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
+    CChunk(const glm::vec3& gPos, const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
+        position = gPos;
         glGenBuffers(3, bufferIDs);
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
@@ -39,7 +41,7 @@ public:
         memcpy(outputData, chunkData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
 
-    void genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6], const glm::vec3& globalPos);
+    void genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6]);
     void genMesh(const CBlockInfo& blocks, CChunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();

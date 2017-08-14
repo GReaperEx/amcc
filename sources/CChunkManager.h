@@ -56,14 +56,11 @@ public:
         }
 
         CChunk *adjacent[6] = { nullptr };
-        for (int i = -1; i <= 1; ++i) {
-            for (int j = -1; j <= 1; ++j) {
-                CChunk* newChunk = new CChunk;
+        for (int i = -8; i <= 8; ++i) {
+            for (int j = -8; j <= 8; ++j) {
+                CChunk* newChunk = new CChunk(glm::vec3(i*16, 0, j*16));
 
-                newChunk->genBlocks(blockInfo, noiseGen, adjacent, glm::vec3(i*16, 0, j*16));
-                newChunk->genMesh(blockInfo, adjacent);
-                newChunk->updateOpenGLState();
-
+                chunksToGenerate.push_back(newChunk);
                 chunks.push_back(newChunk);
             }
         }
@@ -73,7 +70,34 @@ public:
         shaderManager.use("default");
         blockAtlas->use();
 
-        for (CChunk* curChunk : chunks) {
+        // Just for testing, generate/update a chunk per frame
+
+        if (!chunksToGenerate.empty()) {
+            CChunk* chunk = chunksToGenerate.back();
+            chunksToGenerate.pop_back();
+
+            CChunk* adjacent[6] = { nullptr };
+            chunk->genBlocks(blockInfo, noiseGen, adjacent);
+            chunksToUpdateMesh.push_back(chunk);
+        }
+        if (!chunksToUpdateMesh.empty()) {
+            CChunk* chunk = chunksToUpdateMesh.back();
+            chunksToUpdateMesh.pop_back();
+
+            // TODO: Detect adjacent chunks to generate the mesh properly
+            CChunk* adjacent[6] = { nullptr };
+            chunk->genMesh(blockInfo, adjacent);
+            chunksToUpdateState.push_back(chunk);
+        }
+        if (!chunksToUpdateState.empty()) {
+            CChunk* chunk = chunksToUpdateState.back();
+            chunksToUpdateState.pop_back();
+
+            chunk->updateOpenGLState();
+            chunksToRender.push_back(chunk);
+        }
+
+        for (CChunk* curChunk : chunksToRender) {
             glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
             glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
 
@@ -89,6 +113,11 @@ private:
 
     // Naive and temporary solution
     std::vector<CChunk*> chunks;
+
+    std::vector<CChunk*> chunksToRender;
+    std::vector<CChunk*> chunksToGenerate;
+    std::vector<CChunk*> chunksToUpdateMesh;
+    std::vector<CChunk*> chunksToUpdateState;
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;

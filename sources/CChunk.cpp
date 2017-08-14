@@ -3,10 +3,8 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6], const glm::vec3& globalPos)
+void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6])
 {
-    position = globalPos;
-
     // Simple generation, just for testing
 
     uint16_t stoneID = blocks.getBlockID("stone");
@@ -15,8 +13,8 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
 
     for (int j = 0; j < CHUNK_DEPTH; ++j) {
         for (int k = 0; k < CHUNK_WIDTH; ++k) {
-            float nx = (position.x + k)*0.0625f - 0.5f;
-            float nz = (position.z + j)*0.0625f - 0.5f;
+            float nx = (position.x + k)*0.02f - 0.5f;
+            float nz = (position.z + j)*0.02f - 0.5f;
             float noise = noiseGen.noise(nx, 0.0f, nz)/2.0f + 0.5f;
             int maxHeight = 128 + noise*10;
 
