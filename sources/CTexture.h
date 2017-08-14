@@ -11,11 +11,11 @@
 class CTexture : public IRefCounted
 {
 public:
-    CTexture(const std::string& file, bool genMipmaps = true,
+    CTexture(const std::string& file, bool genMipmaps = false,
                                       GLenum magFilter = GL_NEAREST,
-                                      GLenum minFilter = GL_NEAREST_MIPMAP_NEAREST,
-                                      GLenum wrapS = GL_REPEAT,
-                                      GLenum wrapT = GL_REPEAT);
+                                      GLenum minFilter = GL_NEAREST,
+                                      GLenum wrapS = GL_CLAMP_TO_EDGE,
+                                      GLenum wrapT = GL_CLAMP_TO_EDGE);
     ~CTexture() {
         glDeleteTextures(1, &ID);
     }

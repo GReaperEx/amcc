@@ -16,11 +16,11 @@ public:
         }
     }
 
-    CTexture* getTexture(const std::string& path, bool genMipmaps = true,
+    CTexture* getTexture(const std::string& path, bool genMipmaps = false,
                                             GLenum magFilter = GL_NEAREST,
-                                            GLenum minFilter = GL_NEAREST_MIPMAP_NEAREST,
-                                            GLenum wrapS = GL_REPEAT,
-                                            GLenum wrapT = GL_REPEAT) {
+                                            GLenum minFilter = GL_NEAREST,
+                                            GLenum wrapS = GL_CLAMP_TO_EDGE,
+                                            GLenum wrapT = GL_CLAMP_TO_EDGE) {
         auto it = textureMap.find(path);
         if (it != textureMap.end()) {
             it->second->grab();
