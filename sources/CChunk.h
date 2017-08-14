@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "CBlockInfo.h"
+#include "CNoiseGenerator.h"
 
 class CChunk
 {
@@ -24,21 +25,21 @@ public:
 
 public:
     CChunk() {
-        glGenBuffers(2, bufferIDs);
+        glGenBuffers(3, bufferIDs);
     }
     CChunk(const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
-        glGenBuffers(2, bufferIDs);
+        glGenBuffers(3, bufferIDs);
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
     ~CChunk() {
-        glDeleteBuffers(2, bufferIDs);
+        glDeleteBuffers(3, bufferIDs);
     }
 
     void getBlockData(SBlock outputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) const {
         memcpy(outputData, chunkData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
 
-    void genBlocks(const CBlockInfo& blocks, unsigned seed, CChunk* adjacent[6], const glm::vec3& globalPos);
+    void genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6], const glm::vec3& globalPos);
     void genMesh(const CBlockInfo& blocks, CChunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();
@@ -49,6 +50,8 @@ public:
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &(vertices[0]), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[1]);
         glBufferData(GL_ARRAY_BUFFER, uvs.size()*sizeof(glm::vec2), &(uvs[0]), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[2]);
+        glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &(normals[0]), GL_DYNAMIC_DRAW);
 
         vtxCount = vertices.size();
     }
@@ -61,12 +64,12 @@ private:
     SBlock chunkData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH];
     glm::vec3 position;
 
-    GLuint bufferIDs[2];
+    GLuint bufferIDs[3];
     size_t vtxCount;
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
-    // std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> normals;
 };
 
 #endif // C_CHUNK_H

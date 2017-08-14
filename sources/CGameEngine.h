@@ -13,6 +13,7 @@
 #include "CCamera.h"
 
 #include "CChunkManager.h"
+#include "CNoiseGenerator.h"
 
 class CGameEngine
 {
@@ -68,6 +69,7 @@ private:
     Uint32 lastUpdate;
 
     CChunkManager chunkManager;
+    CNoiseGenerator noiseGen;
 };
 
 #endif // C_GAME_ENGINE_H

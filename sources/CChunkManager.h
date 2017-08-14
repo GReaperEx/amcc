@@ -16,7 +16,8 @@ public:
         }
     }
 
-    void init(CTextureManager& textureManager) {
+    void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen) {
+        this->noiseGen = noiseGen;
         blockAtlas = textureManager.getTexture("assets/blockAtlas.png");
 
         // These are for testing
@@ -59,7 +60,7 @@ public:
             for (int j = -1; j <= 1; ++j) {
                 CChunk* newChunk = new CChunk;
 
-                newChunk->genBlocks(blockInfo, 0, adjacent, glm::vec3(i*16, 0, j*16));
+                newChunk->genBlocks(blockInfo, noiseGen, adjacent, glm::vec3(i*16, 0, j*16));
                 newChunk->genMesh(blockInfo, adjacent);
                 newChunk->updateOpenGLState();
 
@@ -91,6 +92,7 @@ private:
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;
+    CNoiseGenerator noiseGen;
 };
 
 #endif // C_CHUNK_MANAGER_H

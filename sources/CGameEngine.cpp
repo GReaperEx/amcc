@@ -89,7 +89,10 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
 
     lastUpdate = SDL_GetTicks();
 
-    chunkManager.init(textureManager);
+    // TODO: The seed given by the user should be passed instead
+    noiseGen.reseed(0);
+
+    chunkManager.init(textureManager, noiseGen);
 }
 
 void CGameEngine::clearState()
