@@ -15,7 +15,7 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
         for (int k = 0; k < CHUNK_WIDTH; ++k) {
             float nx = (position.x + k)*0.02f - 0.5f;
             float nz = (position.z + j)*0.02f - 0.5f;
-            float noise = noiseGen.noise(nx, 0.0f, nz)/2.0f + 0.5f;
+            float noise = noiseGen.octaveNoise(nx, 0.0f, nz, 4)/2.0f + 0.5f;
             int maxHeight = 128 + noise*10;
 
             for (int i = 0; i < maxHeight - 5; ++i) {
