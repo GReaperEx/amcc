@@ -5,6 +5,7 @@
 #include <GL/gl.h>
 
 #include <vector>
+#include <atomic>
 
 #include "CBlockInfo.h"
 #include "CNoiseGenerator.h"
@@ -21,8 +22,6 @@ public:
 
     struct SBlock
     {
-        SBlock(): id(0) {}
-
         uint16_t id;
     };
 
@@ -34,6 +33,7 @@ public:
     CChunk(const glm::vec3& gPos) {
         position = gPos;
         glGenBuffers(3, bufferIDs);
+        memset(chunkData, 0, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
         isGenerated = false;
         isRenderable = false;
@@ -113,10 +113,10 @@ private:
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
 
-    bool isGenerated;
-    bool isRenderable;
-    bool neededMeshUpdate;
-    bool neededStateUpdate;
+    std::atomic_bool isGenerated;
+    std::atomic_bool isRenderable;
+    std::atomic_bool neededMeshUpdate;
+    std::atomic_bool neededStateUpdate;
 };
 
 #endif // C_CHUNK_H

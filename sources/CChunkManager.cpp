@@ -1,5 +1,7 @@
 #include "CChunkManager.h"
 
+#include <chrono>
+
 void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen)
 {
     this->noiseGen = noiseGen;
@@ -48,6 +50,9 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
     }
 
     boxOutline.init(glm::vec3(0, 0, 0));
+
+    chunkGenThread = std::thread(&CChunkManager::genThreadFunc, this);
+    meshUpdateThread = std::thread(&CChunkManager::updateThreadFunc, this);
 }
 
 void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4& vp)
@@ -55,23 +60,7 @@ void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4&
     shaderManager.use("default");
     blockAtlas->use();
 
-    // Just for testing, generate/update a chunk per frame
-    bool generated = false;
-    bool updatedMesh = false;
-
     for (CChunk* curChunk : chunks) {
-        if (!curChunk->isChunkGenerated() && !generated) {
-            CChunk *adjacent[6];
-            findAdjacentChunks(*curChunk, adjacent);
-            curChunk->genBlocks(blockInfo, noiseGen, adjacent);
-            generated = true;
-        }
-        if (curChunk->chunkNeedsMeshUpdate() && !updatedMesh) {
-            CChunk *adjacent[6];
-            findAdjacentChunks(*curChunk, adjacent);
-            curChunk->genMesh(blockInfo, adjacent);
-            updatedMesh = true;
-        }
         if (curChunk->chunkNeedsStateUpdate()) {
             curChunk->updateOpenGLState();
         }
@@ -95,6 +84,11 @@ void CChunkManager::replaceBlock(const CChunk::BlockDetails& newBlock)
     pos.y = (int)glm::floor(newBlock.position.y) - ((mod.y < 0) ? (mod.y + CChunk::CHUNK_HEIGHT) : mod.y);
     pos.z = (int)glm::floor(newBlock.position.z) - ((mod.z < 0) ? (mod.z + CChunk::CHUNK_DEPTH) : mod.z);
 
+    std::unique_lock<std::mutex> lck(chunksBeingUsed);
+    ++usageCount;
+    usageEvent.notify_all();
+    lck.unlock();
+
     for (CChunk* curChunk : chunks) {
         if (curChunk->isChunkRenderable() && pos == curChunk->getPosition()) {
             CChunk *adjacent[6];
@@ -103,6 +97,10 @@ void CChunkManager::replaceBlock(const CChunk::BlockDetails& newBlock)
             break;
         }
     }
+
+    lck.lock();
+    --usageCount;
+    usageEvent.notify_all();
 }
 
 bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
@@ -110,6 +108,7 @@ bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
 {
     CChunk::BlockDetails closest;
     closest.position = rayOrigin + rayDir*1024.0f;
+
     for (CChunk* curChunk : chunks) {
         if (curChunk->isChunkRenderable() &&
             curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
@@ -149,5 +148,55 @@ void CChunkManager::findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]
         } else if (curChunk->getPosition() == glm::vec3(centerPos.x, centerPos.y, centerPos.z-CChunk::CHUNK_DEPTH)) {
             adjacent[5] = curChunk;
         }
+    }
+}
+
+void CChunkManager::genThreadFunc()
+{
+    while (true) {
+        std::unique_lock<std::mutex> lck(chunksBeingUsed);
+        ++usageCount;
+        usageEvent.notify_all();
+        lck.unlock();
+
+        for (CChunk* curChunk : chunks) {
+            if (!curChunk->isChunkGenerated()) {
+                CChunk *adjacent[6];
+                findAdjacentChunks(*curChunk, adjacent);
+                curChunk->genBlocks(blockInfo, noiseGen, adjacent);
+            }
+        }
+
+        lck.lock();
+        --usageCount;
+        usageEvent.notify_all();
+        lck.unlock();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+void CChunkManager::updateThreadFunc()
+{
+    while (true) {
+        std::unique_lock<std::mutex> lck(chunksBeingUsed);
+        ++usageCount;
+        usageEvent.notify_all();
+        lck.unlock();
+
+        for (CChunk* curChunk : chunks) {
+            if (curChunk->chunkNeedsMeshUpdate()) {
+                CChunk *adjacent[6];
+                findAdjacentChunks(*curChunk, adjacent);
+                curChunk->genMesh(blockInfo, adjacent);
+            }
+        }
+
+        lck.lock();
+        --usageCount;
+        usageEvent.notify_all();
+        lck.unlock();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
