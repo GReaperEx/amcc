@@ -5,6 +5,10 @@
 #include "CBlockInfo.h"
 
 #include "CTextureManager.h"
+#include "CBoxOutline.h"
+
+#include <set>
+#include <iostream>
 
 class CChunkManager
 {
@@ -60,10 +64,12 @@ public:
             for (int j = -8; j <= 8; ++j) {
                 CChunk* newChunk = new CChunk(glm::vec3(i*16, 0, j*16));
 
-                chunksToGenerate.push_back(newChunk);
-                chunks.push_back(newChunk);
+                chunksToGenerate.insert(newChunk);
+                chunks.insert(newChunk);
             }
         }
+
+        boxOutline.init(glm::vec3(0, 0, 0));
     }
 
     void renderChunks(CShaderManager& shaderManager, const glm::mat4& vp) {
@@ -73,28 +79,28 @@ public:
         // Just for testing, generate/update a chunk per frame
 
         if (!chunksToGenerate.empty()) {
-            CChunk* chunk = chunksToGenerate.back();
-            chunksToGenerate.pop_back();
+            CChunk* chunk = *(chunksToGenerate.begin());
+            chunksToGenerate.erase(chunksToGenerate.begin());
 
             CChunk* adjacent[6] = { nullptr };
             chunk->genBlocks(blockInfo, noiseGen, adjacent);
-            chunksToUpdateMesh.push_back(chunk);
+            chunksToUpdateMesh.insert(chunk);
         }
         if (!chunksToUpdateMesh.empty()) {
-            CChunk* chunk = chunksToUpdateMesh.back();
-            chunksToUpdateMesh.pop_back();
+            CChunk* chunk = *(chunksToUpdateMesh.begin());
+            chunksToUpdateMesh.erase(chunksToUpdateMesh.begin());
 
             // TODO: Detect adjacent chunks to generate the mesh properly
             CChunk* adjacent[6] = { nullptr };
             chunk->genMesh(blockInfo, adjacent);
-            chunksToUpdateState.push_back(chunk);
+            chunksToUpdateState.insert(chunk);
         }
         if (!chunksToUpdateState.empty()) {
-            CChunk* chunk = chunksToUpdateState.back();
-            chunksToUpdateState.pop_back();
+            CChunk* chunk = *(chunksToUpdateState.begin());
+            chunksToUpdateState.erase(chunksToUpdateState.begin());
 
             chunk->updateOpenGLState();
-            chunksToRender.push_back(chunk);
+            chunksToRender.insert(chunk);
         }
 
         for (CChunk* curChunk : chunksToRender) {
@@ -105,6 +111,55 @@ public:
         }
     }
 
+    void replaceBlock(const CChunk::BlockDetails& newBlock) {
+        glm::vec3 mod((int)glm::floor(newBlock.position.x) % CChunk::CHUNK_WIDTH,
+                      (int)glm::floor(newBlock.position.y) % CChunk::CHUNK_HEIGHT,
+                      (int)glm::floor(newBlock.position.z) % CChunk::CHUNK_DEPTH);
+        glm::vec3 pos;
+        pos.x = (int)glm::floor(newBlock.position.x) - ((mod.x < 0) ? (mod.x + CChunk::CHUNK_WIDTH) : mod.x);
+        pos.y = (int)glm::floor(newBlock.position.y) - ((mod.y < 0) ? (mod.y + CChunk::CHUNK_HEIGHT) : mod.y);
+        pos.z = (int)glm::floor(newBlock.position.z) - ((mod.z < 0) ? (mod.z + CChunk::CHUNK_DEPTH) : mod.z);
+
+        for (CChunk* curChunk : chunksToRender) {
+            if (pos == curChunk->getPosition()) {
+                curChunk->replaceBlock(newBlock);
+                chunksToRender.erase(curChunk);
+                chunksToUpdateMesh.insert(curChunk);
+                break;
+            }
+        }
+    }
+
+    bool traceRayToBlock(CChunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+                         bool ignoreAir = true) {
+        CChunk::BlockDetails closest;
+        closest.position = rayOrigin + rayDir*1024.0f;
+        for (CChunk* curChunk : chunksToRender) {
+            if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
+                glm::vec3 distVec1 = closest.position - rayOrigin;
+                glm::vec3 distVec2 = lookBlock.position - rayOrigin;
+                if (glm::dot(distVec2, distVec2) < glm::dot(distVec1, distVec1)) {
+                    closest.position = lookBlock.position;
+                }
+            }
+        }
+
+        if (closest.position != rayOrigin + rayDir*1024.0f) {
+            lookBlock = closest;
+            return true;
+        }
+        return false;
+    }
+
+    void renderOutline(CShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3 cameraPos, const glm::vec3& cameraLook) {
+        CChunk::BlockDetails lookBlock;
+        if (traceRayToBlock(lookBlock, cameraPos, cameraLook)) {
+            boxOutline.render(shaderManager, vp, lookBlock.position);
+        }
+    }
+
+
+
 private:
     // -1 = "Unlimited"
     static const int CHUNKS_FOR_X = -1;
@@ -112,16 +167,17 @@ private:
     static const int CHUNKS_FOR_Z = -1;
 
     // Naive and temporary solution
-    std::vector<CChunk*> chunks;
+    std::set<CChunk*> chunks;
 
-    std::vector<CChunk*> chunksToRender;
-    std::vector<CChunk*> chunksToGenerate;
-    std::vector<CChunk*> chunksToUpdateMesh;
-    std::vector<CChunk*> chunksToUpdateState;
+    std::set<CChunk*> chunksToRender;
+    std::set<CChunk*> chunksToGenerate;
+    std::set<CChunk*> chunksToUpdateMesh;
+    std::set<CChunk*> chunksToUpdateState;
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;
     CNoiseGenerator noiseGen;
+    CBoxOutline boxOutline;
 };
 
 #endif // C_CHUNK_MANAGER_H

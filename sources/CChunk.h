@@ -12,6 +12,13 @@
 class CChunk
 {
 public:
+    struct BlockDetails
+    {
+        uint16_t id;
+        std::string name;
+        glm::vec3 position;
+    };
+
     struct SBlock
     {
         SBlock(): id(0) {}
@@ -61,6 +68,10 @@ public:
     const glm::vec3& getPosition() const {
         return position;
     }
+
+    void replaceBlock(const BlockDetails& newBlock);
+    bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+                        const CBlockInfo& blockInfo, bool ignoreAir = true);
 
 private:
     SBlock chunkData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH];

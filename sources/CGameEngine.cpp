@@ -27,6 +27,7 @@ void CGameEngine::renderAll()
 
     // Draw stuff here
     chunkManager.renderChunks(shaderManager, vp);
+    chunkManager.renderOutline(shaderManager, vp, camera.getPosition(), camera.getLookVector());
 
     SDL_GL_SwapWindow(mainWindow);
 }
@@ -78,7 +79,8 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (!shaderManager.addShader("default", "shaders/default.vert", "shaders/default.frag")) {
+    if (!shaderManager.addShader("default", "shaders/default.vert", "shaders/default.frag") ||
+        !shaderManager.addShader("simple", "shaders/simple.vert", "shaders/simple.frag")) {
         fatalError("Program_Error: ", "Failed to load required shaders.");
     }
 
@@ -111,6 +113,15 @@ bool CGameEngine::handleEvent(const SDL_Event& event)
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 return false;
+            }
+        break;
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                CChunk::BlockDetails lookBlock;
+                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                    lookBlock.id = 0;
+                    chunkManager.replaceBlock(lookBlock);
+                }
             }
         break;
         case SDL_QUIT:

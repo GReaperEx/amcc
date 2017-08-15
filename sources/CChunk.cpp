@@ -210,3 +210,56 @@ void CChunk::render()
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 }
+
+void CChunk::replaceBlock(const BlockDetails& newBlock)
+{
+    int localX = (int)(newBlock.position.x - position.x);
+    int localY = (int)(newBlock.position.y - position.y);
+    int localZ = (int)(newBlock.position.z - position.z);
+
+    chunkData[localY][localZ][localX].id = newBlock.id;
+}
+
+// Really simple and slow implementation
+// TODO: Use a faster algorithm
+bool CChunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
+                             const glm::vec3& rayDir, const CBlockInfo& blockInfo, bool ignoreAir)
+{
+    glm::vec3 chunkBoxMin = position;
+    glm::vec3 chunkBoxMax = position + glm::vec3((float)CHUNK_WIDTH, (float)CHUNK_HEIGHT, (float)CHUNK_DEPTH);
+    glm::vec3 center = (chunkBoxMax + chunkBoxMin)*0.5f;
+
+    float prevDist = glm::dot(center - rayOrigin, center - rayOrigin);
+    glm::vec3 curPos = rayOrigin;
+    while (curPos.x > chunkBoxMax.x || curPos.y > chunkBoxMax.y || curPos.z > chunkBoxMax.z ||
+           curPos.x < chunkBoxMin.x || curPos.y < chunkBoxMin.y || curPos.z < chunkBoxMin.z) {
+        float curDist = glm::dot(center - curPos, center - curPos);
+        if (prevDist < curDist) {
+            return false;
+        }
+        curPos += rayDir;
+        prevDist = curDist;
+    }
+
+    while (chunkBoxMin.x <= curPos.x && curPos.x < chunkBoxMax.x &&
+           chunkBoxMin.y <= curPos.y && curPos.y < chunkBoxMax.y &&
+           chunkBoxMin.z <= curPos.z && curPos.z < chunkBoxMax.z) {
+        glm::vec3 localPos = curPos - position;
+        if (ignoreAir) {
+            if (chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id) {
+                lookBlock.id = chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id;
+                lookBlock.name = blockInfo.getBlockName(lookBlock.id);
+                lookBlock.position = glm::floor(curPos);
+                return true;
+            }
+        } else {
+            lookBlock.id = chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id;
+            lookBlock.name = blockInfo.getBlockName(lookBlock.id);
+            lookBlock.position = glm::floor(curPos);
+            return true;
+        }
+        curPos += rayDir;
+    }
+
+    return false;
+}

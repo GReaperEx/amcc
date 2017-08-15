@@ -13,38 +13,45 @@ public:
     enum EBlockSide { RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT };
 
 public:
-    CBlockInfo() {}
+    CBlockInfo() {
+        SBlock temp;
+        temp.name = "air";
+        blockInfoMap[0] = temp;
+        idMap["air"] = 0;
+    }
 
     void addBlock(const std::string& name, uint16_t id, const glm::vec2 uvCoords[6][4]) {
-        idMap[name].id = id;
-        memcpy(uvMap[id].UVs, uvCoords, sizeof(glm::vec2)*6*4);
+        idMap[name] = id;
+        blockInfoMap[id].name = name;
+        memcpy(blockInfoMap[id].UVs, uvCoords, sizeof(glm::vec2)*6*4);
     }
 
     void remBlock(const std::string& name) {
-        uint16_t id = idMap[name].id;
+        uint16_t id = idMap[name];
         idMap.erase(name);
-        uvMap.erase(id);
+        blockInfoMap.erase(id);
     }
 
     uint16_t getBlockID(const std::string& name) const {
-        return idMap.find(name)->second.id;
+        return idMap.find(name)->second;
     }
 
     void getBlockUVs(uint16_t id, glm::vec2 uvCoords[6][4]) const {
-        memcpy(uvCoords, uvMap.find(id)->second.UVs, sizeof(glm::vec2)*6*4);
+        memcpy(uvCoords, blockInfoMap.find(id)->second.UVs, sizeof(glm::vec2)*6*4);
+    }
+
+    const std::string& getBlockName(uint16_t id) const {
+        return blockInfoMap.find(id)->second.name;
     }
 
 private:
-    struct BlockID
-    {
-        uint16_t id;
-    };
-    struct BlockUVs
+    struct SBlock
     {
         glm::vec2 UVs[6][4];
+        std::string name;
     };
-    std::map<std::string, BlockID> idMap;
-    std::map<uint16_t, BlockUVs> uvMap;
+    std::map<std::string, uint16_t> idMap;
+    std::map<uint16_t, SBlock> blockInfoMap;
 };
 
 #endif // C_BLOCK_INFO_H
