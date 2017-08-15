@@ -248,46 +248,76 @@ void CChunk::replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6])
     }
 }
 
-// Really simple and slow implementation
-// TODO: Use a faster algorithm
 bool CChunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
                              const glm::vec3& rayDir, const CBlockInfo& blockInfo, bool ignoreAir)
 {
     glm::vec3 chunkBoxMin = position;
     glm::vec3 chunkBoxMax = position + glm::vec3((float)CHUNK_WIDTH, (float)CHUNK_HEIGHT, (float)CHUNK_DEPTH);
-    glm::vec3 center = (chunkBoxMax + chunkBoxMin)*0.5f;
+    glm::vec3 rayDir_inverted = glm::vec3(1.0f/rayDir.x, 1.0f/rayDir.y, 1.0f/rayDir.z);
 
-    float prevDist = glm::dot(center - rayOrigin, center - rayOrigin);
-    glm::vec3 curPos = rayOrigin;
-    while (curPos.x > chunkBoxMax.x || curPos.y > chunkBoxMax.y || curPos.z > chunkBoxMax.z ||
-           curPos.x < chunkBoxMin.x || curPos.y < chunkBoxMin.y || curPos.z < chunkBoxMin.z) {
-        float curDist = glm::dot(center - curPos, center - curPos);
-        if (prevDist < curDist) {
-            return false;
-        }
-        curPos += rayDir;
-        prevDist = curDist;
+    if (rayBlockIntersection(lookBlock.position, chunkBoxMin, chunkBoxMax, rayOrigin, rayDir, rayDir_inverted, ignoreAir)) {
+        glm::vec3 localPos = lookBlock.position - position;
+        lookBlock.id = chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id;
+        lookBlock.name = blockInfo.getBlockName(lookBlock.id);
+        return true;
     }
+    return false;
+}
 
-    while (chunkBoxMin.x <= curPos.x && curPos.x < chunkBoxMax.x &&
-           chunkBoxMin.y <= curPos.y && curPos.y < chunkBoxMax.y &&
-           chunkBoxMin.z <= curPos.z && curPos.z < chunkBoxMax.z) {
-        glm::vec3 localPos = curPos - position;
-        if (ignoreAir) {
-            if (chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id) {
-                lookBlock.id = chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id;
-                lookBlock.name = blockInfo.getBlockName(lookBlock.id);
-                lookBlock.position = glm::floor(curPos);
-                return true;
+bool CChunk::rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin, const glm::vec3& boxMax,
+                                  const glm::vec3& rayPos, const glm::vec3& rayDir,
+                                  const glm::vec3& rayDir_inverted, bool ignoreAir)
+{
+    glm::vec3 closest = rayPos + rayDir*10240.0f;
+    glm::vec3 dims = boxMax - boxMin;
+
+    if (rayBoxIntersection(boxMin, boxMax, rayPos, rayDir_inverted)) {
+        if (dims.x >= 2 || dims.y >= 2 || dims.z >= 2) {
+            for (int i = 0; i < 2; ++i) {
+                for (int j = 0; j < 2; ++j) {
+                    for (int k = 0; k < 2; ++k) {
+                        glm::vec3 localMin = boxMin + glm::vec3(i, j, k)*dims*0.5f;
+                        glm::vec3 localMax = localMin + dims*0.5f;
+                        glm::vec3 temp;
+                        if (rayBlockIntersection(temp, localMin, localMax, rayPos, rayDir, rayDir_inverted, ignoreAir)) {
+                            float dist1 = glm::dot(closest-rayPos, closest-rayPos);
+                            float dist2 = glm::dot(temp-rayPos, temp-rayPos);
+                            if (dist2 < dist1) {
+                                closest = temp;
+                            }
+                        }
+                    }
+                }
             }
         } else {
-            lookBlock.id = chunkData[(int)glm::floor(localPos.y)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.x)].id;
-            lookBlock.name = blockInfo.getBlockName(lookBlock.id);
-            lookBlock.position = glm::floor(curPos);
-            return true;
-        }
-        curPos += rayDir;
-    }
+            lookBlock = glm::floor(boxMin);
+            glm::vec3 localPos = lookBlock - position;
+            uint16_t itsID = chunkData[(int)localPos.y][(int)localPos.z][(int)localPos.x].id;
 
+            if ((ignoreAir && itsID != 0) || !ignoreAir) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        lookBlock = closest;
+        return closest != rayPos + rayDir*10240.0f;
+    }
     return false;
+}
+
+bool CChunk::rayBoxIntersection(const glm::vec3& boxMin, const glm::vec3& boxMax,
+                                const glm::vec3& rayPos, const glm::vec3& rayDir_inverted)
+{
+    using glm::min;
+    using glm::max;
+
+    glm::vec3 minCheck = (boxMin - rayPos)*rayDir_inverted;
+    glm::vec3 maxCheck = (boxMax - rayPos)*rayDir_inverted;
+
+    float tmin = max(max(min(minCheck.x, maxCheck.x), min(minCheck.y, maxCheck.y)), min(minCheck.z, maxCheck.z));
+    float tmax = min(min(max(minCheck.x, maxCheck.x), max(minCheck.y, maxCheck.y)), max(minCheck.z, maxCheck.z));
+
+    return tmax >= tmin && tmax >= 0;
 }

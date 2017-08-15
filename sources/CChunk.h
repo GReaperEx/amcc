@@ -117,6 +117,12 @@ private:
     std::atomic_bool isRenderable;
     std::atomic_bool neededMeshUpdate;
     std::atomic_bool neededStateUpdate;
+
+    bool rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin, const glm::vec3& boxMax,
+                              const glm::vec3& rayPos, const glm::vec3& rayDir,
+                              const glm::vec3& rayDir_inverted, bool ignoreAir);
+    bool rayBoxIntersection(const glm::vec3& boxMin, const glm::vec3& boxMax,
+                            const glm::vec3& rayPos, const glm::vec3& rayDir_inverted);
 };
 
 #endif // C_CHUNK_H
