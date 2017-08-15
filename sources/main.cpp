@@ -15,7 +15,7 @@ int main()
         myEngine.updateAll();
         myEngine.renderAll();
 
-        SDL_Delay(50);
+        SDL_Delay(30);
     }
 
     return 0;

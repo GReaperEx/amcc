@@ -8,34 +8,34 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
     // These are for testing
     {
         glm::vec2 texCoords[6][4] = {
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
-            { glm::vec2(0, 0.5f), glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
+            { glm::vec2(0, 0.75f), glm::vec2(0.25f, 0.75f), glm::vec2(0.25f, 1.0f), glm::vec2(0, 1.0f) },
         };
         blockInfo.addBlock("stone", 1, texCoords);
     }
     {
         glm::vec2 texCoords[6][4] = {
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
-            { glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), glm::vec2(1.0f, 1.0f), glm::vec2(0.5f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
         };
         blockInfo.addBlock("dirt", 2, texCoords);
     }
     {
         glm::vec2 texCoords[6][4] = {
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
-            { glm::vec2(0, 0.0f), glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), glm::vec2(0, 0.5f) },
+            { glm::vec2(0.5f, 0.75f), glm::vec2(0.75f, 0.75f), glm::vec2(0.75f, 1.0f), glm::vec2(0.5f, 1.0f) },
+            { glm::vec2(0.5f, 0.75f), glm::vec2(0.75f, 0.75f), glm::vec2(0.75f, 1.0f), glm::vec2(0.5f, 1.0f) },
+            { glm::vec2(0.75f, 0.75f), glm::vec2(1.0f, 0.75f), glm::vec2(1.0f, 1.0f), glm::vec2(0.75f, 1.0f) },
+            { glm::vec2(0.25f, 0.75f), glm::vec2(0.5f, 0.75f), glm::vec2(0.5f, 1.0f), glm::vec2(0.25f, 1.0f) },
+            { glm::vec2(0.5f, 0.75f), glm::vec2(0.75f, 0.75f), glm::vec2(0.75f, 1.0f), glm::vec2(0.5f, 1.0f) },
+            { glm::vec2(0.5f, 0.75f), glm::vec2(0.75f, 0.75f), glm::vec2(0.75f, 1.0f), glm::vec2(0.5f, 1.0f) },
         };
         blockInfo.addBlock("grass", 3, texCoords);
     }

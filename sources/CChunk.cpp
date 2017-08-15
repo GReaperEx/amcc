@@ -13,15 +13,17 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
 
     for (int j = 0; j < CHUNK_DEPTH; ++j) {
         for (int k = 0; k < CHUNK_WIDTH; ++k) {
-            float nx = (position.x + k)*0.02f - 0.5f;
-            float nz = (position.z + j)*0.02f - 0.5f;
-            float noise = noiseGen.octaveNoise(nx, 0.0f, nz, 4)/2.0f + 0.5f;
-            int maxHeight = 128 + noise*10;
+            float nx = (position.x + k)*0.1f;
+            float nz = (position.z + j)*0.1f;
+            float noise = noiseGen.noise(nx, 0.0f, nz)*0.5f +
+                          noiseGen.noise(nx*0.1f, 0.0f, nz*0.1f)*10.0f/* +
+                          noiseGen.noise(nx*0.001f, 0.0f, nz*0.001f)*20*/;
+            int maxHeight = glm::clamp(128 + noise*10, 0.0f, (float)CHUNK_HEIGHT - 1);
 
-            for (int i = 0; i < maxHeight - 5; ++i) {
+            for (int i = 0; i < std::max(maxHeight - 5, 0); ++i) {
                 chunkData[i][j][k].id = stoneID;
             }
-            for (int i = maxHeight - 5; i < maxHeight; ++i) {
+            for (int i = std::max(maxHeight - 5, 0); i < maxHeight; ++i) {
                 chunkData[i][j][k].id = dirtID;
             }
             chunkData[maxHeight][j][k].id = grassID;
