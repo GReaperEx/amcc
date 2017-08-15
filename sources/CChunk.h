@@ -34,11 +34,21 @@ public:
     CChunk(const glm::vec3& gPos) {
         position = gPos;
         glGenBuffers(3, bufferIDs);
+
+        isGenerated = false;
+        isRenderable = false;
+        neededMeshUpdate = false;
+        neededStateUpdate = false;
     }
     CChunk(const glm::vec3& gPos, const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
         position = gPos;
         glGenBuffers(3, bufferIDs);
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
+
+        isGenerated = true;
+        isRenderable = false;
+        neededMeshUpdate = true;
+        neededStateUpdate = false;
     }
     ~CChunk() {
         glDeleteBuffers(3, bufferIDs);
@@ -63,15 +73,34 @@ public:
         glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &(normals[0]), GL_DYNAMIC_DRAW);
 
         vtxCount = vertices.size();
+
+        neededStateUpdate = false;
+        isRenderable = true;
     }
 
     const glm::vec3& getPosition() const {
         return position;
     }
 
-    void replaceBlock(const BlockDetails& newBlock);
+    void replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6]);
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                         const CBlockInfo& blockInfo, bool ignoreAir = true);
+
+    bool isChunkGenerated() const {
+        return isGenerated;
+    }
+
+    bool isChunkRenderable() const {
+        return isRenderable;
+    }
+
+    bool chunkNeedsMeshUpdate() const {
+        return neededMeshUpdate;
+    }
+
+    bool chunkNeedsStateUpdate() const {
+        return neededStateUpdate;
+    }
 
 private:
     SBlock chunkData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH];
@@ -83,6 +112,11 @@ private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
+
+    bool isGenerated;
+    bool isRenderable;
+    bool neededMeshUpdate;
+    bool neededStateUpdate;
 };
 
 #endif // C_CHUNK_H

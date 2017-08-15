@@ -27,6 +27,14 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
             chunkData[maxHeight][j][k].id = grassID;
         }
     }
+    isGenerated = true;
+    neededMeshUpdate = true;
+
+    for (int i = 0; i < 6; i++) {
+        if (adjacent[i]) {
+            adjacent[i]->neededMeshUpdate = true;
+        }
+    }
 }
 
 void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
@@ -186,6 +194,8 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
             }
         }
     }
+    neededMeshUpdate = false;
+    neededStateUpdate = true;
 }
 
 void CChunk::update(float dT)
@@ -211,13 +221,30 @@ void CChunk::render()
     glDisableVertexAttribArray(0);
 }
 
-void CChunk::replaceBlock(const BlockDetails& newBlock)
+void CChunk::replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6])
 {
     int localX = (int)(newBlock.position.x - position.x);
     int localY = (int)(newBlock.position.y - position.y);
     int localZ = (int)(newBlock.position.z - position.z);
 
     chunkData[localY][localZ][localX].id = newBlock.id;
+
+    neededMeshUpdate = true;
+    if (adjacent[0] && localX == CHUNK_WIDTH-1) {
+        adjacent[0]->neededMeshUpdate = true;
+    } else if (adjacent[1] && localX == 0) {
+        adjacent[1]->neededMeshUpdate = true;
+    }
+    if (adjacent[2] && localY == CHUNK_HEIGHT-1) {
+        adjacent[2]->neededMeshUpdate = true;
+    } else if (adjacent[3] && localY == 0) {
+        adjacent[3]->neededMeshUpdate = true;
+    }
+    if (adjacent[4] && localZ == CHUNK_DEPTH-1) {
+        adjacent[4]->neededMeshUpdate = true;
+    } else if (adjacent[5] && localZ == 0) {
+        adjacent[5]->neededMeshUpdate = true;
+    }
 }
 
 // Really simple and slow implementation

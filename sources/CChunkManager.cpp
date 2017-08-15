@@ -40,12 +40,9 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
         blockInfo.addBlock("grass", 3, texCoords);
     }
 
-    CChunk *adjacent[6] = { nullptr };
     for (int i = -8; i <= 8; ++i) {
         for (int j = -8; j <= 8; ++j) {
             CChunk* newChunk = new CChunk(glm::vec3(i*16, 0, j*16));
-
-            chunksToGenerate.insert(newChunk);
             chunks.insert(newChunk);
         }
     }
@@ -59,37 +56,32 @@ void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4&
     blockAtlas->use();
 
     // Just for testing, generate/update a chunk per frame
+    bool generated = false;
+    bool updatedMesh = false;
 
-    if (!chunksToGenerate.empty()) {
-        CChunk* chunk = *(chunksToGenerate.begin());
-        chunksToGenerate.erase(chunksToGenerate.begin());
+    for (CChunk* curChunk : chunks) {
+        if (!curChunk->isChunkGenerated() && !generated) {
+            CChunk *adjacent[6];
+            findAdjacentChunks(*curChunk, adjacent);
+            curChunk->genBlocks(blockInfo, noiseGen, adjacent);
+            generated = true;
+        }
+        if (curChunk->chunkNeedsMeshUpdate() && !updatedMesh) {
+            CChunk *adjacent[6];
+            findAdjacentChunks(*curChunk, adjacent);
+            curChunk->genMesh(blockInfo, adjacent);
+            updatedMesh = true;
+        }
+        if (curChunk->chunkNeedsStateUpdate()) {
+            curChunk->updateOpenGLState();
+        }
 
-        CChunk* adjacent[6] = { nullptr };
-        chunk->genBlocks(blockInfo, noiseGen, adjacent);
-        chunksToUpdateMesh.insert(chunk);
-    }
-    if (!chunksToUpdateMesh.empty()) {
-        CChunk* chunk = *(chunksToUpdateMesh.begin());
-        chunksToUpdateMesh.erase(chunksToUpdateMesh.begin());
+        if (curChunk->isChunkRenderable()) {
+            glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
+            glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
 
-        // TODO: Detect adjacent chunks to generate the mesh properly
-        CChunk* adjacent[6] = { nullptr };
-        chunk->genMesh(blockInfo, adjacent);
-        chunksToUpdateState.insert(chunk);
-    }
-    if (!chunksToUpdateState.empty()) {
-        CChunk* chunk = *(chunksToUpdateState.begin());
-        chunksToUpdateState.erase(chunksToUpdateState.begin());
-
-        chunk->updateOpenGLState();
-        chunksToRender.insert(chunk);
-    }
-
-    for (CChunk* curChunk : chunksToRender) {
-        glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
-        glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
-
-        curChunk->render();
+            curChunk->render();
+        }
     }
 }
 
@@ -103,11 +95,11 @@ void CChunkManager::replaceBlock(const CChunk::BlockDetails& newBlock)
     pos.y = (int)glm::floor(newBlock.position.y) - ((mod.y < 0) ? (mod.y + CChunk::CHUNK_HEIGHT) : mod.y);
     pos.z = (int)glm::floor(newBlock.position.z) - ((mod.z < 0) ? (mod.z + CChunk::CHUNK_DEPTH) : mod.z);
 
-    for (CChunk* curChunk : chunksToRender) {
-        if (pos == curChunk->getPosition()) {
-            curChunk->replaceBlock(newBlock);
-            chunksToRender.erase(curChunk);
-            chunksToUpdateMesh.insert(curChunk);
+    for (CChunk* curChunk : chunks) {
+        if (curChunk->isChunkRenderable() && pos == curChunk->getPosition()) {
+            CChunk *adjacent[6];
+            findAdjacentChunks(*curChunk, adjacent);
+            curChunk->replaceBlock(newBlock, adjacent);
             break;
         }
     }
@@ -118,8 +110,9 @@ bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
 {
     CChunk::BlockDetails closest;
     closest.position = rayOrigin + rayDir*1024.0f;
-    for (CChunk* curChunk : chunksToRender) {
-        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
+    for (CChunk* curChunk : chunks) {
+        if (curChunk->isChunkRenderable() &&
+            curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
             glm::vec3 distVec1 = closest.position - rayOrigin;
             glm::vec3 distVec2 = lookBlock.position - rayOrigin;
             if (glm::dot(distVec2, distVec2) < glm::dot(distVec1, distVec1)) {
@@ -133,4 +126,28 @@ bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
         return true;
     }
     return false;
+}
+
+void CChunkManager::findAdjacentChunks(const CChunk& center, CChunk *adjacent[6])
+{
+    for (int i = 0; i < 6; ++i) {
+        adjacent[i] = nullptr;
+    }
+
+    for (CChunk *curChunk : chunks) {
+        glm::vec3 centerPos = center.getPosition();
+        if (curChunk->getPosition() == glm::vec3(centerPos.x+CChunk::CHUNK_WIDTH, centerPos.y, centerPos.z)) {
+            adjacent[0] = curChunk;
+        } else if (curChunk->getPosition() == glm::vec3(centerPos.x-CChunk::CHUNK_WIDTH, centerPos.y, centerPos.z)) {
+            adjacent[1] = curChunk;
+        } else if (curChunk->getPosition() == glm::vec3(centerPos.x, centerPos.y+CChunk::CHUNK_HEIGHT, centerPos.z)) {
+            adjacent[2] = curChunk;
+        } else if (curChunk->getPosition() == glm::vec3(centerPos.x, centerPos.y-CChunk::CHUNK_HEIGHT, centerPos.z)) {
+            adjacent[3] = curChunk;
+        } else if (curChunk->getPosition() == glm::vec3(centerPos.x, centerPos.y, centerPos.z+CChunk::CHUNK_DEPTH)) {
+            adjacent[4] = curChunk;
+        } else if (curChunk->getPosition() == glm::vec3(centerPos.x, centerPos.y, centerPos.z-CChunk::CHUNK_DEPTH)) {
+            adjacent[5] = curChunk;
+        }
+    }
 }

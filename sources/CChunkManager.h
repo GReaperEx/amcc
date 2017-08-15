@@ -34,6 +34,8 @@ public:
     }
 
 private:
+    void findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]);
+
     // -1 = "Unlimited"
     static const int CHUNKS_FOR_X = -1;
     static const int CHUNKS_FOR_Y =  1;
@@ -41,11 +43,6 @@ private:
 
     // Naive and temporary solution
     std::set<CChunk*> chunks;
-
-    std::set<CChunk*> chunksToRender;
-    std::set<CChunk*> chunksToGenerate;
-    std::set<CChunk*> chunksToUpdateMesh;
-    std::set<CChunk*> chunksToUpdateState;
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;
