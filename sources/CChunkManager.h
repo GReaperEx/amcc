@@ -49,6 +49,7 @@ public:
 
 private:
     void findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]);
+    void loadBlockInfo(CTextureManager& textureManager);
 
     // -1 = "Unlimited"
     static const int CHUNKS_FOR_X = -1;

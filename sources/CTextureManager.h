@@ -16,6 +16,10 @@ public:
         }
     }
 
+    void addTexture(const std::string& name, CTexture* texture) {
+        textureMap[name] = texture;
+    }
+
     CTexture* getTexture(const std::string& path, bool genMipmaps = false,
                                             GLenum magFilter = GL_NEAREST,
                                             GLenum minFilter = GL_NEAREST,

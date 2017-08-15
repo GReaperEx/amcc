@@ -12,6 +12,15 @@ CTexture::CTexture(const std::string& file, bool genMipmaps, GLenum magFilter, G
     load(file, genMipmaps);
 }
 
+CTexture::CTexture(SDL_Surface* surface, bool genMipmaps, GLenum magFilter, GLenum minFilter, GLenum wrapS, GLenum wrapT)
+{
+    this->magFilter = magFilter;
+    this->minFilter = minFilter;
+    this->wrapS = wrapS;
+    this->wrapT = wrapT;
+    load(surface, genMipmaps);
+}
+
 void CTexture::setMagFilter(GLenum newMagFilter)
 {
     magFilter = newMagFilter;
@@ -92,4 +101,49 @@ void CTexture::load(const std::string& file, bool genMipmaps)
     }
 
     SDL_FreeSurface(image);
+}
+
+void CTexture::load(SDL_Surface* surface, bool genMipmaps)
+{
+    width = surface->w;
+    height = surface->h;
+
+    GLenum internalFormat, format;
+    switch (surface->format->BitsPerPixel)
+    {
+    case 24:
+        internalFormat = GL_RGB;
+        if (surface->format->Rmask == 0x000000FF) {
+            format = GL_RGB;
+        } else {
+            format = GL_BGR;
+        }
+        hasAlpha = false;
+    break;
+    case 32:
+        internalFormat = GL_RGBA;
+        if (surface->format->Rmask == 0x000000FF) {
+            format = GL_RGBA;
+        } else {
+            format = GL_BGRA;
+        }
+        hasAlpha = true;
+    break;
+    default:
+        fatalError("Program_Error", "Format of given surface isn't supported.");
+    }
+
+    glGenTextures(1, &ID);
+    glBindTexture(GL_TEXTURE_2D, ID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+    if (genMipmaps) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 }

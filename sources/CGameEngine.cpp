@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <glm/glm.hpp>
+#include <SDL2/SDL_image.h>
 
 void CGameEngine::updateAll()
 {
@@ -71,6 +72,10 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     GLenum err = glewInit();
     if (err != GLEW_OK) {
         fatalError("GLEW_Error: ", (const char*)glewGetString(err));
+    }
+
+    if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG) {
+        fatalError("IMG_Init: ", IMG_GetError());
     }
 
     glGenVertexArrays(1, &vtxArrayID);
