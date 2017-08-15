@@ -32,7 +32,7 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
     neededMeshUpdate = true;
 
     for (int i = 0; i < 6; i++) {
-        if (adjacent[i] && adjacent[i]->isChunkGenerated()) {
+        if (adjacent[i]) {
             adjacent[i]->neededMeshUpdate = true;
         }
     }

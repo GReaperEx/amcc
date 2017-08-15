@@ -42,8 +42,8 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
         blockInfo.addBlock("grass", 3, texCoords);
     }
 
-    for (int i = -8; i <= 8; ++i) {
-        for (int j = -8; j <= 8; ++j) {
+    for (int i = -16; i <= 16; ++i) {
+        for (int j = -16; j <= 16; ++j) {
             CChunk* newChunk = new CChunk(glm::vec3(i*16, 0, j*16));
             chunks.insert(newChunk);
         }
@@ -134,6 +134,10 @@ void CChunkManager::findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]
     }
 
     for (CChunk *curChunk : chunks) {
+        if (!curChunk->isChunkGenerated()) {
+            continue;
+        }
+
         glm::vec3 centerPos = center.getPosition();
         if (curChunk->getPosition() == glm::vec3(centerPos.x+CChunk::CHUNK_WIDTH, centerPos.y, centerPos.z)) {
             adjacent[0] = curChunk;
