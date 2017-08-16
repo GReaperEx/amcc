@@ -1,6 +1,6 @@
 #include "CChunkTree.h"
 
-void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position)
+void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf)
 {
     glm::vec3 nodeCenter = node->node.center;
     int indX, indY, indZ;
@@ -22,15 +22,19 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position)
     }
 
     if (node->node.subdivisions[indX][indY][indZ] == nullptr) {
-        node->node.subdivisions[indX][indY][indZ] = new TreeLeafNode;
-        node->node.subdivisions[indX][indY][indZ]->isLeaf = true;
-        node->node.subdivisions[indX][indY][indZ]->leaf.chunk = new CChunk(position);
+        if (leaf != nullptr) {
+            node->node.subdivisions[indX][indY][indZ] = leaf;
+        } else {
+            node->node.subdivisions[indX][indY][indZ] = new TreeLeafNode;
+            node->node.subdivisions[indX][indY][indZ]->isLeaf = true;
+            node->node.subdivisions[indX][indY][indZ]->leaf.chunk = new CChunk(position);
+        }
     } else if (node->node.subdivisions[indX][indY][indZ]->isLeaf) {
         TreeLeafNode *newNode = new TreeLeafNode;
         memset(newNode, 0, sizeof(TreeLeafNode));
         newNode->node.center = position;
         addLeaf(newNode, position);
-        addLeaf(newNode, node->node.subdivisions[indX][indY][indZ]->leaf.chunk->getPosition());
+        addLeaf(newNode, node->node.subdivisions[indX][indY][indZ]->leaf.chunk->getPosition(), node->node.subdivisions[indX][indY][indZ]);
         node->node.subdivisions[indX][indY][indZ] = newNode;
     } else {
         addLeaf(node->node.subdivisions[indX][indY][indZ], position);

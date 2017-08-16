@@ -47,9 +47,9 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
 
 void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
 {
-    vertices.clear();
-    uvs.clear();
-    normals.clear();
+    vertices = new std::vector<glm::vec3>();
+    uvs = new std::vector<glm::vec2>();
+    normals = new std::vector<glm::vec3>();
 
     for (int i = 0; i < CHUNK_HEIGHT; ++i) {
         for (int j = 0; j < CHUNK_DEPTH; ++j) {
@@ -63,140 +63,140 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                 if ((k == CHUNK_WIDTH-1 && adjacent[0] && adjacent[0]->chunkData[i][j][0].id == 0) ||
                     (k != CHUNK_WIDTH-1 && chunkData[i][j][k+1].id == 0)) {
                     // RIGHT
-                    vertices.push_back(glm::vec3(k+1, i, j+1));
-                    vertices.push_back(glm::vec3(k+1, i, j));
-                    vertices.push_back(glm::vec3(k+1, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][2]);
-                    normals.push_back(glm::vec3(1, 0, 0));
-                    normals.push_back(glm::vec3(1, 0, 0));
-                    normals.push_back(glm::vec3(1, 0, 0));
+                    vertices->push_back(glm::vec3(k+1, i, j+1));
+                    vertices->push_back(glm::vec3(k+1, i, j));
+                    vertices->push_back(glm::vec3(k+1, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][2]);
+                    normals->push_back(glm::vec3(1, 0, 0));
+                    normals->push_back(glm::vec3(1, 0, 0));
+                    normals->push_back(glm::vec3(1, 0, 0));
 
-                    vertices.push_back(glm::vec3(k+1, i, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j));
-                    vertices.push_back(glm::vec3(k+1, i+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][3]);
-                    normals.push_back(glm::vec3(1, 0, 0));
-                    normals.push_back(glm::vec3(1, 0, 0));
-                    normals.push_back(glm::vec3(1, 0, 0));
+                    vertices->push_back(glm::vec3(k+1, i, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j));
+                    vertices->push_back(glm::vec3(k+1, i+1, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::RIGHT][3]);
+                    normals->push_back(glm::vec3(1, 0, 0));
+                    normals->push_back(glm::vec3(1, 0, 0));
+                    normals->push_back(glm::vec3(1, 0, 0));
                 }
                 if ((k == 0 && adjacent[1] && adjacent[1]->chunkData[i][j][CHUNK_WIDTH-1].id == 0) ||
                     (k != 0 && chunkData[i][j][k-1].id == 0)) {
                     // LEFT
-                    vertices.push_back(glm::vec3(k, i, j));
-                    vertices.push_back(glm::vec3(k, i, j+1));
-                    vertices.push_back(glm::vec3(k, i+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][2]);
-                    normals.push_back(glm::vec3(-1, 0, 0));
-                    normals.push_back(glm::vec3(-1, 0, 0));
-                    normals.push_back(glm::vec3(-1, 0, 0));
+                    vertices->push_back(glm::vec3(k, i, j));
+                    vertices->push_back(glm::vec3(k, i, j+1));
+                    vertices->push_back(glm::vec3(k, i+1, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][2]);
+                    normals->push_back(glm::vec3(-1, 0, 0));
+                    normals->push_back(glm::vec3(-1, 0, 0));
+                    normals->push_back(glm::vec3(-1, 0, 0));
 
-                    vertices.push_back(glm::vec3(k, i, j));
-                    vertices.push_back(glm::vec3(k, i+1, j+1));
-                    vertices.push_back(glm::vec3(k, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][3]);
-                    normals.push_back(glm::vec3(-1, 0, 0));
-                    normals.push_back(glm::vec3(-1, 0, 0));
-                    normals.push_back(glm::vec3(-1, 0, 0));
+                    vertices->push_back(glm::vec3(k, i, j));
+                    vertices->push_back(glm::vec3(k, i+1, j+1));
+                    vertices->push_back(glm::vec3(k, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::LEFT][3]);
+                    normals->push_back(glm::vec3(-1, 0, 0));
+                    normals->push_back(glm::vec3(-1, 0, 0));
+                    normals->push_back(glm::vec3(-1, 0, 0));
                 }
                 if ((i == CHUNK_HEIGHT-1 && adjacent[2] && adjacent[2]->chunkData[0][j][k].id == 0) ||
                     (i != CHUNK_HEIGHT-1 && chunkData[i+1][j][k].id == 0)) {
                     // TOP
-                    vertices.push_back(glm::vec3(k, i+1, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][2]);
-                    normals.push_back(glm::vec3(0, 1, 0));
-                    normals.push_back(glm::vec3(0, 1, 0));
-                    normals.push_back(glm::vec3(0, 1, 0));
+                    vertices->push_back(glm::vec3(k, i+1, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][2]);
+                    normals->push_back(glm::vec3(0, 1, 0));
+                    normals->push_back(glm::vec3(0, 1, 0));
+                    normals->push_back(glm::vec3(0, 1, 0));
 
-                    vertices.push_back(glm::vec3(k, i+1, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j));
-                    vertices.push_back(glm::vec3(k, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][3]);
-                    normals.push_back(glm::vec3(0, 1, 0));
-                    normals.push_back(glm::vec3(0, 1, 0));
-                    normals.push_back(glm::vec3(0, 1, 0));
+                    vertices->push_back(glm::vec3(k, i+1, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j));
+                    vertices->push_back(glm::vec3(k, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::TOP][3]);
+                    normals->push_back(glm::vec3(0, 1, 0));
+                    normals->push_back(glm::vec3(0, 1, 0));
+                    normals->push_back(glm::vec3(0, 1, 0));
                 }
                 if ((i == 0 && adjacent[3] && adjacent[3]->chunkData[CHUNK_HEIGHT-1][j][k].id == 0) ||
                     (i != 0 && chunkData[i-1][j][k].id == 0)) {
                     // BOTTOM
-                    vertices.push_back(glm::vec3(k, i, j));
-                    vertices.push_back(glm::vec3(k+1, i, j));
-                    vertices.push_back(glm::vec3(k+1, i, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][2]);
-                    normals.push_back(glm::vec3(0, -1, 0));
-                    normals.push_back(glm::vec3(0, -1, 0));
-                    normals.push_back(glm::vec3(0, -1, 0));
+                    vertices->push_back(glm::vec3(k, i, j));
+                    vertices->push_back(glm::vec3(k+1, i, j));
+                    vertices->push_back(glm::vec3(k+1, i, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][2]);
+                    normals->push_back(glm::vec3(0, -1, 0));
+                    normals->push_back(glm::vec3(0, -1, 0));
+                    normals->push_back(glm::vec3(0, -1, 0));
 
-                    vertices.push_back(glm::vec3(k, i, j));
-                    vertices.push_back(glm::vec3(k+1, i, j+1));
-                    vertices.push_back(glm::vec3(k, i, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][3]);
-                    normals.push_back(glm::vec3(0, -1, 0));
-                    normals.push_back(glm::vec3(0, -1, 0));
-                    normals.push_back(glm::vec3(0, -1, 0));
+                    vertices->push_back(glm::vec3(k, i, j));
+                    vertices->push_back(glm::vec3(k+1, i, j+1));
+                    vertices->push_back(glm::vec3(k, i, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::BOTTOM][3]);
+                    normals->push_back(glm::vec3(0, -1, 0));
+                    normals->push_back(glm::vec3(0, -1, 0));
+                    normals->push_back(glm::vec3(0, -1, 0));
                 }
                 if ((j == CHUNK_DEPTH-1 && adjacent[4] && adjacent[4]->chunkData[i][0][k].id == 0) ||
                     (j != CHUNK_DEPTH-1 && chunkData[i][j+1][k].id == 0)) {
                     // BACK
-                    vertices.push_back(glm::vec3(k, i, j+1));
-                    vertices.push_back(glm::vec3(k+1, i, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][2]);
-                    normals.push_back(glm::vec3(0, 0, 1));
-                    normals.push_back(glm::vec3(0, 0, 1));
-                    normals.push_back(glm::vec3(0, 0, 1));
+                    vertices->push_back(glm::vec3(k, i, j+1));
+                    vertices->push_back(glm::vec3(k+1, i, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][2]);
+                    normals->push_back(glm::vec3(0, 0, 1));
+                    normals->push_back(glm::vec3(0, 0, 1));
+                    normals->push_back(glm::vec3(0, 0, 1));
 
-                    vertices.push_back(glm::vec3(k, i, j+1));
-                    vertices.push_back(glm::vec3(k+1, i+1, j+1));
-                    vertices.push_back(glm::vec3(k, i+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][3]);
-                    normals.push_back(glm::vec3(0, 0, 1));
-                    normals.push_back(glm::vec3(0, 0, 1));
-                    normals.push_back(glm::vec3(0, 0, 1));
+                    vertices->push_back(glm::vec3(k, i, j+1));
+                    vertices->push_back(glm::vec3(k+1, i+1, j+1));
+                    vertices->push_back(glm::vec3(k, i+1, j+1));
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::BACK][3]);
+                    normals->push_back(glm::vec3(0, 0, 1));
+                    normals->push_back(glm::vec3(0, 0, 1));
+                    normals->push_back(glm::vec3(0, 0, 1));
                 }
                 if ((j == 0 && adjacent[5] && adjacent[5]->chunkData[i][CHUNK_DEPTH-1][k].id == 0) ||
                     (j != 0 && chunkData[i][j-1][k].id == 0)) {
                     // FRONT
-                    vertices.push_back(glm::vec3(k+1, i, j));
-                    vertices.push_back(glm::vec3(k, i, j));
-                    vertices.push_back(glm::vec3(k, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][2]);
-                    normals.push_back(glm::vec3(0, 0, -1));
-                    normals.push_back(glm::vec3(0, 0, -1));
-                    normals.push_back(glm::vec3(0, 0, -1));
+                    vertices->push_back(glm::vec3(k+1, i, j));
+                    vertices->push_back(glm::vec3(k, i, j));
+                    vertices->push_back(glm::vec3(k, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][1]);
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][2]);
+                    normals->push_back(glm::vec3(0, 0, -1));
+                    normals->push_back(glm::vec3(0, 0, -1));
+                    normals->push_back(glm::vec3(0, 0, -1));
 
-                    vertices.push_back(glm::vec3(k+1, i, j));
-                    vertices.push_back(glm::vec3(k, i+1, j));
-                    vertices.push_back(glm::vec3(k+1, i+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][3]);
-                    normals.push_back(glm::vec3(0, 0, -1));
-                    normals.push_back(glm::vec3(0, 0, -1));
-                    normals.push_back(glm::vec3(0, 0, -1));
+                    vertices->push_back(glm::vec3(k+1, i, j));
+                    vertices->push_back(glm::vec3(k, i+1, j));
+                    vertices->push_back(glm::vec3(k+1, i+1, j));
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][0]);
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][2]);
+                    uvs->push_back(blockUVs[CBlockInfo::FRONT][3]);
+                    normals->push_back(glm::vec3(0, 0, -1));
+                    normals->push_back(glm::vec3(0, 0, -1));
+                    normals->push_back(glm::vec3(0, 0, -1));
                 }
 
             }

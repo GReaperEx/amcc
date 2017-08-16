@@ -66,16 +66,20 @@ public:
     // This should only be called by the main rendering thread
     void updateOpenGLState() {
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[0]);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &(vertices[0]), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices->size()*sizeof(glm::vec3), &((*vertices)[0]), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[1]);
-        glBufferData(GL_ARRAY_BUFFER, uvs.size()*sizeof(glm::vec2), &(uvs[0]), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, uvs->size()*sizeof(glm::vec2), &((*uvs)[0]), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[2]);
-        glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &(normals[0]), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, normals->size()*sizeof(glm::vec3), &((*normals)[0]), GL_DYNAMIC_DRAW);
 
-        vtxCount = vertices.size();
+        vtxCount = vertices->size();
 
         neededStateUpdate = false;
         isRenderable = true;
+
+        delete vertices;
+        delete uvs;
+        delete normals;
     }
 
     const glm::vec3& getPosition() const {
@@ -109,9 +113,9 @@ private:
     GLuint bufferIDs[3];
     size_t vtxCount;
 
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> *vertices;
+    std::vector<glm::vec2> *uvs;
+    std::vector<glm::vec3> *normals;
 
     std::atomic_bool isGenerated;
     std::atomic_bool isRenderable;

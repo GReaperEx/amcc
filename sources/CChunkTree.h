@@ -55,7 +55,7 @@ public:
 private:
     union TreeLeafNode;
 
-    void addLeaf(TreeLeafNode* node, const glm::vec3& position);
+    void addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf = nullptr);
     void remLeaf(TreeLeafNode* node, const glm::vec3& position);
     void deleteAll(TreeLeafNode* node);
     void getLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const;
