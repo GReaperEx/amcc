@@ -117,7 +117,12 @@ bool CGameEngine::handleEvent(const SDL_Event& event)
         {
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE) {
-                return false;
+                cameraEnabled = !cameraEnabled;
+                if (cameraEnabled) {
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
+                } else {
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
+                }
             }
         break;
         case SDL_MOUSEBUTTONDOWN:

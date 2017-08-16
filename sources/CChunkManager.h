@@ -7,6 +7,7 @@
 #include "CTextureManager.h"
 #include "CBoxOutline.h"
 #include "CCamera.h"
+#include "CChunkTree.h"
 
 #include <set>
 #include <thread>
@@ -22,9 +23,6 @@ public:
     }
 
     ~CChunkManager() {
-        for (CChunk *curChunk : chunks) {
-            delete curChunk;
-        }
         if (blockAtlas) {
             blockAtlas->drop();
         }
@@ -51,13 +49,8 @@ private:
     void findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]);
     void loadBlockInfo(CTextureManager& textureManager);
 
-    // -1 = "Unlimited"
-    static const int CHUNKS_FOR_X = -1;
-    static const int CHUNKS_FOR_Y =  1;
-    static const int CHUNKS_FOR_Z = -1;
-
-    // Naive and temporary solution
-    std::set<CChunk*> chunks;
+    CChunkTree chunkTree;
+    std::vector<CChunk*> chunks;
     std::mutex chunksBeingUsed;
     std::condition_variable usageEvent;
     std::atomic_int usageCount;

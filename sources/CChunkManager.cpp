@@ -13,12 +13,13 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
 
     loadBlockInfo(textureManager);
 
-    for (int i = -16; i <= 16; ++i) {
-        for (int j = -16; j <= 16; ++j) {
-            CChunk* newChunk = new CChunk(glm::vec3(i*16, 0, j*16));
-            chunks.insert(newChunk);
+    for (int i = -16; i < 16; ++i) {
+        for (int j = -16; j < 16; ++j) {
+            chunkTree.addChunk(glm::vec3(i*16, 0, j*16));
         }
     }
+    // ChunkTree shouldn't be used like this, I'm just testing things
+    chunkTree.getAllChunks(chunks);
 
     boxOutline.init(glm::vec3(0, 0, 0));
 
