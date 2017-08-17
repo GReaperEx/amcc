@@ -7,12 +7,13 @@
 #include <SDL2/SDL.h>
 
 #include "IRefCounted.h"
+#include "utils3d.h"
 
 class CCamera : public IRefCounted
 {
 public:
     CCamera()
-    : position(0), lookVector(0, 0, -1), upVector(0, 1, 0), fieldOfView(70), aspectRatio(4/3.0f), nearClipDistance(0.001f), farClipDistance(1000)
+    : position(0), lookVector(0, 0, -1), upVector(0, 1, 0), fieldOfView(70), aspectRatio(4/3.0f), nearClipDistance(0.01f), farClipDistance(1000)
     {
         keepMoving[0] = false;
         keepMoving[1] = false;
@@ -86,8 +87,16 @@ public:
         return glm::lookAt(position, position+lookVector, upVector);
     }
 
+    const glm::mat4 genMirrorviewMatrix() const {
+        return glm::inverse(genViewMatrix());
+    }
+
     const glm::mat4 genProjectionMatrix() const {
         return glm::perspective(fieldOfView, aspectRatio, nearClipDistance, farClipDistance);
+    }
+
+    const utils3d::Frustum genFrustum() const {
+        return utils3d::Frustum(genMirrorviewMatrix(), fieldOfView, aspectRatio, nearClipDistance, farClipDistance);
     }
 
     bool handleEvent(const SDL_Event& event);

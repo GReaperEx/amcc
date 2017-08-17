@@ -2,6 +2,7 @@
 #define C_CHUNK_TREE_H
 
 #include "CChunk.h"
+#include "utils3d.h"
 
 class CChunkTree
 {
@@ -11,45 +12,37 @@ public:
         deleteAll(root);
     }
 
-    void addChunk(const glm::vec3& position) {
-        if (root == nullptr) {
-            root = new TreeLeafNode;
-            memset(root, 0, sizeof(TreeLeafNode));
-            root->node.center = position;
-        }
-
-        addLeaf(root, position);
-    }
-
-    void remChunk(const glm::vec3& position) {
-        if (root != nullptr) {
-            remLeaf(root, position);
-        }
-
-        for (int i = 0; i < 2; ++i) {
-            for (int j = 0; j < 2; ++j) {
-                for (int k = 0; k < 2; ++k) {
-                    if (root->node.subdivisions[i][j][k] != nullptr) {
-                        return;
-                    }
-                }
-            }
-        }
-        delete root;
-        root = nullptr;
-    }
+    void addChunk(const glm::vec3& position);
+    void remChunk(const glm::vec3& position);
 
     void getAllChunks(std::vector<CChunk*>& output) const {
         output.clear();
         if (root) {
-            getLeafs(root, output);
+            getAllLeafs(root, output);
+        }
+    }
+
+    void getIntersectingChunks(std::vector<CChunk*>& output,
+                               const glm::vec3& rayPos, const glm::vec3& rayDir_inverted) const {
+        output.clear();
+        if (root) {
+            getIntersectingLeafs(root, output, rayPos, rayDir_inverted);
+        }
+    }
+
+    void getFrustumChunks(std::vector<CChunk*>& output, const utils3d::Frustum& frustum) const {
+        output.clear();
+        if (root) {
+            getFrustumLeafs(root, output, frustum);
         }
     }
 
     void clear() {
-        deleteAll(root);
-        delete root;
-        root = nullptr;
+        if (root) {
+            deleteAll(root);
+            delete root;
+            root = nullptr;
+        }
     }
 
 private:
@@ -58,7 +51,10 @@ private:
     void addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf = nullptr);
     void remLeaf(TreeLeafNode* node, const glm::vec3& position);
     void deleteAll(TreeLeafNode* node);
-    void getLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const;
+
+    void getAllLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const;
+    void getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted) const;
+    void getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::Frustum& frustum) const;
 
     union TreeLeafNode
     {
@@ -69,6 +65,7 @@ private:
             bool isLeaf;
             glm::vec3 center;
             TreeLeafNode *subdivisions[2][2][2];
+            utils3d::AABBox boundaries;
         } node;
         struct { // isLeaf == true
             bool isLeaf;

@@ -7,9 +7,10 @@
 
 #include <SDL2/SDL_image.h>
 
-void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen)
+void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera)
 {
     this->noiseGen = noiseGen;
+    this->camera = camera;
 
     loadBlockInfo(textureManager);
 
@@ -32,7 +33,10 @@ void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4&
     shaderManager.use("default");
     blockAtlas->use();
 
-    for (CChunk* curChunk : chunks) {
+    std::vector<CChunk*> fetchedChunks;
+    chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum());
+
+    for (CChunk* curChunk : fetchedChunks) {
         if (curChunk->chunkNeedsStateUpdate()) {
             curChunk->updateOpenGLState();
         }

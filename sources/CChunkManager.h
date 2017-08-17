@@ -31,16 +31,16 @@ public:
         meshUpdateThread.detach();
     }
 
-    void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen);
+    void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera);
     void renderChunks(CShaderManager& shaderManager, const glm::mat4& vp);
 
     void replaceBlock(const CChunk::BlockDetails& newBlock);
     bool traceRayToBlock(CChunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                          bool ignoreAir = true);
 
-    void renderOutline(CShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3& cameraPos, const glm::vec3& cameraLook) {
+    void renderOutline(CShaderManager& shaderManager, const glm::mat4& vp) {
         CChunk::BlockDetails lookBlock;
-        if (traceRayToBlock(lookBlock, cameraPos, cameraLook)) {
+        if (traceRayToBlock(lookBlock, camera->getPosition(), camera->getLookVector())) {
             boxOutline.render(shaderManager, vp, lookBlock.position);
         }
     }
@@ -64,6 +64,7 @@ private:
     CBlockInfo blockInfo;
     CNoiseGenerator noiseGen;
     CBoxOutline boxOutline;
+    CCamera* camera;
 };
 
 #endif // C_CHUNK_MANAGER_H

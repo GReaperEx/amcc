@@ -1,5 +1,65 @@
 #include "CChunkTree.h"
 
+void CChunkTree::addChunk(const glm::vec3& position)
+{
+    if (root == nullptr) {
+        root = new TreeLeafNode;
+        memset(root, 0, sizeof(TreeLeafNode));
+        root->node.center = position;
+        root->node.boundaries = utils3d::AABBox(position, position + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+    }
+
+    addLeaf(root, position);
+}
+
+void CChunkTree::remChunk(const glm::vec3& position)
+{
+    if (root != nullptr) {
+        remLeaf(root, position);
+
+        // Re-balancing tree
+        while (true) {
+            int subCount = 0;
+            int lastX = -1, lastY, lastZ;
+            for (int i = 0; i < 2; ++i) {
+                for (int j = 0; j < 2; ++j) {
+                    for (int k = 0; k < 2; ++k) {
+                        if (root->node.subdivisions[i][j][k]) {
+                            ++subCount;
+                            if (!root->node.subdivisions[i][j][k]->isLeaf) {
+                                lastX = i;
+                                lastY = j;
+                                lastZ = k;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (subCount == 1 && lastX >= 0) {
+                TreeLeafNode *temp = root->node.subdivisions[lastX][lastY][lastZ];
+                delete root;
+                root = temp;
+            } else {
+                break;
+            }
+        }
+
+        // Deleting last empty node
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                for (int k = 0; k < 2; ++k) {
+                    if (root->node.subdivisions[i][j][k] != nullptr) {
+                        return;
+                    }
+                }
+            }
+        }
+        delete root;
+        root = nullptr;
+    }
+}
+
 void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf)
 {
     glm::vec3 nodeCenter = node->node.center;
@@ -21,6 +81,9 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
         indZ = 0;
     }
 
+    node->node.boundaries.addPoint(position);
+    node->node.boundaries.addPoint(position + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+
     if (node->node.subdivisions[indX][indY][indZ] == nullptr) {
         if (leaf != nullptr) {
             node->node.subdivisions[indX][indY][indZ] = leaf;
@@ -33,6 +96,7 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
         TreeLeafNode *newNode = new TreeLeafNode;
         memset(newNode, 0, sizeof(TreeLeafNode));
         newNode->node.center = position;
+        newNode->node.boundaries = utils3d::AABBox(position, position);
         addLeaf(newNode, position);
         addLeaf(newNode, node->node.subdivisions[indX][indY][indZ]->leaf.chunk->getPosition(), node->node.subdivisions[indX][indY][indZ]);
         node->node.subdivisions[indX][indY][indZ] = newNode;
@@ -106,7 +170,7 @@ void CChunkTree::deleteAll(TreeLeafNode* node)
     }
 }
 
-void CChunkTree::getLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const
+void CChunkTree::getAllLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const
 {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -115,7 +179,56 @@ void CChunkTree::getLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) cons
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
                     } else {
-                        getLeafs(node->node.subdivisions[i][j][k], output);
+                        getAllLeafs(node->node.subdivisions[i][j][k], output);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted) const
+{
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                if (node->node.subdivisions[i][j][k]) {
+                    if (node->node.subdivisions[i][j][k]->isLeaf) {
+                        glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
+                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        if (utils3d::rayAABBcollision(rayPos, rayDir_inverted, box)) {
+                            output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
+                        }
+                    } else {
+                        glm::vec3 nodeCenter = node->node.center;
+                        glm::vec3 nodeEdge = nodeCenter + glm::vec3(2*i-1, 2*j-1, 2*k-1)*10240.0f;
+                        utils3d::AABBox box(glm::min(nodeCenter, nodeEdge), glm::max(nodeCenter, nodeEdge));
+                        if (utils3d::rayAABBcollision(rayPos, rayDir_inverted, box)) {
+                            getIntersectingLeafs(node->node.subdivisions[i][j][k], output, rayPos, rayDir_inverted);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::Frustum& frustum) const
+{
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                if (node->node.subdivisions[i][j][k]) {
+                    if (node->node.subdivisions[i][j][k]->isLeaf) {
+                        glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
+                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        if (utils3d::frustumAABBcollision(frustum, box)) {
+                            output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
+                        }
+                    } else {
+                        if (utils3d::frustumAABBcollision(frustum, node->node.subdivisions[i][j][k]->node.boundaries)) {
+                            getFrustumLeafs(node->node.subdivisions[i][j][k], output, frustum);
+                        }
                     }
                 }
             }

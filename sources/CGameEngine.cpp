@@ -28,7 +28,7 @@ void CGameEngine::renderAll()
 
     // Draw stuff here
     chunkManager.renderChunks(shaderManager, vp);
-    chunkManager.renderOutline(shaderManager, vp, camera.getPosition(), camera.getLookVector());
+    chunkManager.renderOutline(shaderManager, vp);
 
     SDL_GL_SwapWindow(mainWindow);
 }
@@ -99,7 +99,7 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     // TODO: The seed given by the user should be passed instead
     noiseGen.reseed(123);
 
-    chunkManager.init(textureManager, noiseGen);
+    chunkManager.init(textureManager, noiseGen, &camera);
 }
 
 void CGameEngine::clearState()
