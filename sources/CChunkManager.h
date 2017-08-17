@@ -20,6 +20,8 @@ class CChunkManager
 public:
     CChunkManager() {
         blockAtlas = nullptr;
+        keepRunning = true;
+        userRequest = false;
     }
 
     ~CChunkManager() {
@@ -27,8 +29,9 @@ public:
             blockAtlas->drop();
         }
 
-        chunkGenThread.detach();
-        meshUpdateThread.detach();
+        keepRunning = false;
+        chunkGenThread.join();
+        meshUpdateThread.join();
     }
 
     void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera);
@@ -59,6 +62,8 @@ private:
     void genThreadFunc();
     std::thread meshUpdateThread;
     void updateThreadFunc();
+    std::atomic_bool keepRunning;
+    std::atomic_bool userRequest;
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;

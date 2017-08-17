@@ -15,10 +15,23 @@ public:
     void addChunk(const glm::vec3& position);
     void remChunk(const glm::vec3& position);
 
-    void getAllChunks(std::vector<CChunk*>& output) const {
+    CChunk* getChunk(const glm::vec3& pos, bool beGenerated = true) const {
+        TreeLeafNode* foundLeaf = nullptr;
+        if (root) {
+            foundLeaf = getLeaf(root, pos);
+        }
+        if (foundLeaf) {
+            if (!beGenerated || (beGenerated && foundLeaf->leaf.chunk->isChunkGenerated())) {
+                return foundLeaf->leaf.chunk;
+            }
+        }
+        return nullptr;
+    }
+
+    void getChunkArea(std::vector<CChunk*>& output, const utils3d::AABBox& area) const {
         output.clear();
         if (root) {
-            getAllLeafs(root, output);
+            getLeafArea(root, output, area);
         }
     }
 
@@ -52,7 +65,8 @@ private:
     void remLeaf(TreeLeafNode* node, const glm::vec3& position);
     void deleteAll(TreeLeafNode* node);
 
-    void getAllLeafs(TreeLeafNode* node, std::vector<CChunk*>& output) const;
+    TreeLeafNode* getLeaf(TreeLeafNode* node, const glm::vec3& pos) const;
+    void getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::AABBox& area) const;
     void getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted) const;
     void getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::Frustum& frustum) const;
 

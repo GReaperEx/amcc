@@ -91,5 +91,5 @@ void CCamera::update(float dT)
         direction = glm::normalize(direction);
     }
 
-    position += direction*dT*10.0f;
+    position += direction*dT*50.0f;
 }

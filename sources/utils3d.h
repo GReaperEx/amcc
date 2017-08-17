@@ -102,8 +102,9 @@ struct Frustum
     }
 };
 
-bool frustumAABBcollision(const Frustum& frustum, const AABBox& box);
-bool rayAABBcollision(const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, const AABBox& box);
+bool AABBcollision(const AABBox& boxA, const AABBox& boxB);
+bool FrustumAABBcollision(const Frustum& frustum, const AABBox& box);
+bool RayAABBcollision(const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, const AABBox& box);
 
 }
 

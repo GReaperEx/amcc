@@ -1,6 +1,18 @@
 #include "utils3d.h"
 
-bool utils3d::frustumAABBcollision(const Frustum& frustum, const AABBox& box)
+bool utils3d::AABBcollision(const AABBox& boxA, const AABBox& boxB)
+{
+    return !(
+        boxA.maxVec.x < boxB.minVec.x ||
+        boxA.maxVec.y < boxB.minVec.y ||
+        boxA.maxVec.z < boxB.minVec.z ||
+        boxA.minVec.x > boxB.maxVec.x ||
+        boxA.minVec.y > boxB.maxVec.y ||
+        boxA.minVec.z > boxB.maxVec.z
+      );
+}
+
+bool utils3d::FrustumAABBcollision(const Frustum& frustum, const AABBox& box)
 {
    glm::vec3 vmin, vmax;
 
@@ -36,7 +48,7 @@ bool utils3d::frustumAABBcollision(const Frustum& frustum, const AABBox& box)
    return true;
 }
 
-bool utils3d::rayAABBcollision(const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, const AABBox& box)
+bool utils3d::RayAABBcollision(const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, const AABBox& box)
 {
     using glm::min;
     using glm::max;

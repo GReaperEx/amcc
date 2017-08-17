@@ -9,6 +9,7 @@
 
 #include "CBlockInfo.h"
 #include "CNoiseGenerator.h"
+#include "IRefCounted.h"
 
 class CChunk
 {
