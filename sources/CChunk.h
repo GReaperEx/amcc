@@ -33,9 +33,9 @@ public:
 public:
     CChunk(const glm::vec3& gPos) {
         position = gPos;
-        glGenBuffers(3, bufferIDs);
         memset(chunkData, 0, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
+        isStateInited = false;
         isGenerated = false;
         isRenderable = false;
         neededMeshUpdate = false;
@@ -43,9 +43,9 @@ public:
     }
     CChunk(const glm::vec3& gPos, const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
         position = gPos;
-        glGenBuffers(3, bufferIDs);
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
+        isStateInited = false;
         isGenerated = true;
         isRenderable = false;
         neededMeshUpdate = true;
@@ -53,6 +53,11 @@ public:
     }
     ~CChunk() {
         glDeleteBuffers(3, bufferIDs);
+    }
+
+    void initOpenGLState() {
+        glGenBuffers(3, bufferIDs);
+        isStateInited = true;
     }
 
     void getBlockData(SBlock outputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) const {
@@ -91,6 +96,10 @@ public:
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                         const CBlockInfo& blockInfo, bool ignoreAir = true);
 
+    bool isStateInitialized() const {
+        return isStateInited;
+    }
+
     bool isChunkGenerated() const {
         return isGenerated;
     }
@@ -118,6 +127,7 @@ private:
     std::vector<glm::vec2> *uvs;
     std::vector<glm::vec3> *normals;
 
+    std::atomic_bool isStateInited;
     std::atomic_bool isGenerated;
     std::atomic_bool isRenderable;
     std::atomic_bool neededMeshUpdate;

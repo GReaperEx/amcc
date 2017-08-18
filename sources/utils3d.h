@@ -11,6 +11,8 @@ struct AABBox
     glm::vec3 minVec;
     glm::vec3 maxVec;
 
+    AABBox(): minVec(0), maxVec(0) {}
+
     AABBox(const glm::vec3& minV, const glm::vec3& maxV)
     : minVec(minV), maxVec(maxV)
     {}

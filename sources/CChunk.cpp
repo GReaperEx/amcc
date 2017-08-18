@@ -22,7 +22,9 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
                           noiseGen.noise(nx*0.011f, 0.0f, nz*0.011f) +
                           noiseGen.noise(nx*0.013f, 0.0f, nz*0.013f) +
                           noiseGen.noise(nx*0.017f, 0.0f, nz*0.017f) +
-                          noiseGen.noise(nx*0.023f, 0.0f, nz*0.023f);
+                          noiseGen.noise(nx*0.019f, 0.0f, nz*0.019f) +
+                          noiseGen.noise(nx*0.023f, 0.0f, nz*0.023f) +
+                          noiseGen.noise(nx*0.029f, 0.0f, nz*0.029f);
 
             int maxHeight = glm::clamp(128 + noise*10, 0.0f, (float)CHUNK_HEIGHT - 1);
 

@@ -30,8 +30,15 @@ public:
         }
 
         keepRunning = false;
-        chunkGenThread.join();
-        meshUpdateThread.join();
+        if (chunkGenThread.joinable()) {
+            chunkGenThread.join();
+        }
+        if (meshUpdateThread.joinable()) {
+            meshUpdateThread.join();
+        }
+        if (initAndFreeThread.joinable()) {
+            initAndFreeThread.join();
+        }
     }
 
     void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera);
@@ -53,15 +60,13 @@ private:
     void loadBlockInfo(CTextureManager& textureManager);
 
     CChunkTree chunkTree;
-    std::vector<CChunk*> chunks;
-    std::mutex chunksBeingUsed;
-    std::condition_variable usageEvent;
-    std::atomic_int usageCount;
 
     std::thread chunkGenThread;
     void genThreadFunc();
     std::thread meshUpdateThread;
     void updateThreadFunc();
+    std::thread initAndFreeThread;
+    void initfreeThreadFunc();
     std::atomic_bool keepRunning;
     std::atomic_bool userRequest;
 

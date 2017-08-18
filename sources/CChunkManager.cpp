@@ -16,15 +16,9 @@ void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator&
 
     boxOutline.init(glm::vec3(0, 0, 0));
 
-    // Just for testing
-    for (int i = -32; i < 32; ++i) {
-        for (int j = -32; j < 32; ++j) {
-            chunkTree.addChunk(glm::vec3(i*16.0f, 0.0f, j*16.0f));
-        }
-    }
-
     chunkGenThread = std::thread(&CChunkManager::genThreadFunc, this);
     meshUpdateThread = std::thread(&CChunkManager::updateThreadFunc, this);
+    initAndFreeThread = std::thread(&CChunkManager::initfreeThreadFunc, this);
 }
 
 void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4& vp)
@@ -33,35 +27,27 @@ void CChunkManager::renderChunks(CShaderManager& shaderManager, const glm::mat4&
     blockAtlas->use();
 
     std::vector<CChunk*> fetchedChunks;
-    chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum());
+    chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum(), (CChunkTree::EChunkFlags)(CChunkTree::NEED_STATE_UPDATE | CChunkTree::RENDERABLE));
 
     for (CChunk* curChunk : fetchedChunks) {
         if (curChunk->chunkNeedsStateUpdate()) {
             curChunk->updateOpenGLState();
         }
 
-        if (curChunk->isChunkRenderable()) {
-            glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
-            glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
+        glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
+        glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
 
-            curChunk->render();
-        }
+        curChunk->render();
     }
+
+    chunkTree.eraseChunks();
+    chunkTree.initChunks();
 }
 
 void CChunkManager::replaceBlock(const CChunk::BlockDetails& newBlock)
 {
-    glm::vec3 mod((int)glm::floor(newBlock.position.x) % CChunk::CHUNK_WIDTH,
-                  (int)glm::floor(newBlock.position.y) % CChunk::CHUNK_HEIGHT,
-                  (int)glm::floor(newBlock.position.z) % CChunk::CHUNK_DEPTH);
-    glm::vec3 pos;
-    pos.x = (int)glm::floor(newBlock.position.x) - ((mod.x < 0) ? (mod.x + CChunk::CHUNK_WIDTH) : mod.x);
-    pos.y = (int)glm::floor(newBlock.position.y) - ((mod.y < 0) ? (mod.y + CChunk::CHUNK_HEIGHT) : mod.y);
-    pos.z = (int)glm::floor(newBlock.position.z) - ((mod.z < 0) ? (mod.z + CChunk::CHUNK_DEPTH) : mod.z);
-
-    std::unique_lock<std::mutex> lck(chunksBeingUsed);
-    ++usageCount;
-    lck.unlock();
+    glm::vec3 temp((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH);
+    glm::vec3 pos = glm::floor(newBlock.position/temp)*temp;
 
     CChunk* fetchedChunks[7];
     fetchedChunks[0] = chunkTree.getChunk(pos);
@@ -77,9 +63,6 @@ void CChunkManager::replaceBlock(const CChunk::BlockDetails& newBlock)
         userRequest = true;
     }
 
-    lck.lock();
-    --usageCount;
-    usageEvent.notify_all();
 }
 
 bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
@@ -93,8 +76,7 @@ bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
     chunkTree.getIntersectingChunks(fetchedChunks, rayOrigin, rayDir_inverted);
 
     for (CChunk* curChunk : fetchedChunks) {
-        if (curChunk->isChunkRenderable() &&
-            curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
+        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
             glm::vec3 distVec1 = closest.position - rayOrigin;
             glm::vec3 distVec2 = lookBlock.position - rayOrigin;
             if (glm::dot(distVec2, distVec2) < glm::dot(distVec1, distVec1)) {
@@ -112,19 +94,13 @@ bool CChunkManager::traceRayToBlock(CChunk::BlockDetails& lookBlock,
 
 void CChunkManager::genThreadFunc()
 {
+    using namespace std::chrono;
     while (keepRunning) {
-        std::unique_lock<std::mutex> lck(chunksBeingUsed);
-        ++usageCount;
-        lck.unlock();
+        high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
         std::vector<CChunk*> fetchedChunks;
         glm::vec3 camPos = camera->getPosition();
-chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)));
-
-        lck.lock();
-        --usageCount;
-        usageEvent.notify_all();
-        lck.unlock();
+        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)), CChunkTree::INITIALIZED);
 
         // Sorting the chunks from closest (to the camera), using a lambda function
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
@@ -146,8 +122,13 @@ chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0
                 curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
             }
 
-            if (!keepRunning || userRequest) {
+            if (!keepRunning) {
                 userRequest = false;
+                break;
+            }
+
+            // Don't execute for more than a second
+            if (duration_cast<seconds>(high_resolution_clock::now() - startTime).count() >= 1) {
                 break;
             }
         }
@@ -158,19 +139,13 @@ chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0
 
 void CChunkManager::updateThreadFunc()
 {
+    using namespace std::chrono;
     while (keepRunning) {
-        std::unique_lock<std::mutex> lck(chunksBeingUsed);
-        ++usageCount;
-        lck.unlock();
+        high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
         std::vector<CChunk*> fetchedChunks;
         glm::vec3 camPos = camera->getPosition();
-        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)));
-
-        lck.lock();
-        --usageCount;
-        usageEvent.notify_all();
-        lck.unlock();
+        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)), CChunkTree::NEED_MESH_UPDATE);
 
         // Sorting the chunks from closest (to the camera), using a lambda function
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
@@ -180,23 +155,41 @@ void CChunkManager::updateThreadFunc()
         });
 
         for (CChunk* curChunk : fetchedChunks) {
-            if (curChunk->chunkNeedsMeshUpdate()) {
-                CChunk* chunkArea[6];
-                glm::vec3 pos = curChunk->getPosition();
-                chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
-                chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
-                chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
-                chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
-                chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-                chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-                curChunk->genMesh(blockInfo, chunkArea);
-            }
+            CChunk* chunkArea[6];
+            glm::vec3 pos = curChunk->getPosition();
+            chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            curChunk->genMesh(blockInfo, chunkArea);
 
             if (!keepRunning || userRequest) {
                 userRequest = false;
                 break;
             }
+
+            // Don't execute for more than a second
+            if (duration_cast<seconds>(high_resolution_clock::now() - startTime).count() >= 1) {
+                break;
+            }
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+void CChunkManager::initfreeThreadFunc()
+{
+    while (keepRunning) {
+        float cameraFar = camera->getFarClipDistance();
+        glm::vec3 cameraPos = camera->getPosition();
+
+        utils3d::AABBox activeArea(cameraPos - glm::vec3(cameraFar, 0.0f, cameraFar), cameraPos + glm::vec3(cameraFar, 0.0f, cameraFar));
+
+        chunkTree.eraseOldChunks(activeArea);
+        chunkTree.genNewChunks(activeArea);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

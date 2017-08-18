@@ -3,12 +3,12 @@
 bool utils3d::AABBcollision(const AABBox& boxA, const AABBox& boxB)
 {
     return !(
-        boxA.maxVec.x < boxB.minVec.x ||
-        boxA.maxVec.y < boxB.minVec.y ||
-        boxA.maxVec.z < boxB.minVec.z ||
-        boxA.minVec.x > boxB.maxVec.x ||
-        boxA.minVec.y > boxB.maxVec.y ||
-        boxA.minVec.z > boxB.maxVec.z
+        boxA.maxVec.x <= boxB.minVec.x ||
+        boxA.maxVec.y <= boxB.minVec.y ||
+        boxA.maxVec.z <= boxB.minVec.z ||
+        boxA.minVec.x >= boxB.maxVec.x ||
+        boxA.minVec.y >= boxB.maxVec.y ||
+        boxA.minVec.z >= boxB.maxVec.z
       );
 }
 

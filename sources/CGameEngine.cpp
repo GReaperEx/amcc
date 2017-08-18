@@ -91,6 +91,7 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
 
     camera.setAspectRatio(windowWidth/(float)windowHeight);
     camera.setPosition(glm::vec3(0, 150, 0));
+    camera.setFarClipDistance(16*16);
     cameraEnabled = true;
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
