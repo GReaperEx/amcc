@@ -186,7 +186,10 @@ void CChunkManager::initfreeThreadFunc()
         float cameraFar = camera->getFarClipDistance();
         glm::vec3 cameraPos = camera->getPosition();
 
+        glm::vec3 chunkDims((int)CChunk::CHUNK_WIDTH, (int)CChunk::CHUNK_HEIGHT, (int)CChunk::CHUNK_DEPTH);
         utils3d::AABBox activeArea(cameraPos - glm::vec3(cameraFar, 0.0f, cameraFar), cameraPos + glm::vec3(cameraFar, 0.0f, cameraFar));
+        activeArea.minVec = glm::floor(activeArea.minVec/chunkDims)*chunkDims;
+        activeArea.maxVec = glm::ceil(activeArea.maxVec/chunkDims)*chunkDims;
 
         chunkTree.eraseOldChunks(activeArea);
         chunkTree.genNewChunks(activeArea);

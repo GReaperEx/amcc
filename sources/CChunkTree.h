@@ -6,6 +6,8 @@
 
 #include <mutex>
 
+#include <SDL2/SDL.h>
+
 class CChunkTree
 {
 public:
@@ -16,7 +18,10 @@ public:
         if (root) {
             deleteAll(root);
         }
-        eraseChunks();
+        while (!chunksToErase.empty()) {
+            eraseChunks();
+            SDL_Delay(10);
+        }
     }
 
     void addChunk(const glm::vec3& position);
@@ -90,12 +95,15 @@ public:
 
         std::lock_guard<std::mutex> lck(erasedBeingModified);
         auto nowTime = high_resolution_clock::now();
-        for (auto it = chunksToErase.begin(); it != chunksToErase.end(); ++it) {
+        auto it = chunksToErase.begin();
+        while (it != chunksToErase.end()) {
             if (duration_cast<seconds>(nowTime - it->eraseTime).count() > 1) {
                 delete it->chunk;
+                it = chunksToErase.erase(it);
+            } else {
+                ++it;
             }
         }
-        chunksToErase.clear();
     }
 
 private:

@@ -15,18 +15,13 @@ void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen
         for (int k = 0; k < CHUNK_WIDTH; ++k) {
             float nx = (position.x + k);
             float nz = (position.z + j);
-            float noise = noiseGen.noise(nx*0.002f, 0.0f, nz*0.002f) +
-                          noiseGen.noise(nx*0.003f, 0.0f, nz*0.003f) +
-                          noiseGen.noise(nx*0.005f, 0.0f, nz*0.005f) +
-                          noiseGen.noise(nx*0.007f, 0.0f, nz*0.007f) +
-                          noiseGen.noise(nx*0.011f, 0.0f, nz*0.011f) +
-                          noiseGen.noise(nx*0.013f, 0.0f, nz*0.013f) +
-                          noiseGen.noise(nx*0.017f, 0.0f, nz*0.017f) +
-                          noiseGen.noise(nx*0.019f, 0.0f, nz*0.019f) +
-                          noiseGen.noise(nx*0.023f, 0.0f, nz*0.023f) +
-                          noiseGen.noise(nx*0.029f, 0.0f, nz*0.029f);
+            float noise = noiseGen.noise(nx*0.002f, 0.0f, nz*0.002f)*20 +
+                          noiseGen.noise(nx*0.003f, 0.0f, nz*0.003f)*20 +
+                          noiseGen.noise(nx*0.005f, 0.0f, nz*0.005f)*20 +
+                          noiseGen.noise(nx*0.007f, 0.0f, nz*0.007f)*20 +
+                          noiseGen.noise(nx*0.011f, 0.0f, nz*0.011f)*20;
 
-            int maxHeight = glm::clamp(128 + noise*10, 0.0f, (float)CHUNK_HEIGHT - 1);
+            int maxHeight = glm::clamp(128 + noise, 0.0f, (float)CHUNK_HEIGHT - 1);
 
             for (int i = 0; i < std::max(maxHeight - 5, 0); ++i) {
                 chunkData[i][j][k].id = stoneID;

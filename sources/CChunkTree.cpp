@@ -70,15 +70,11 @@ void CChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
         treeArea = root->node.boundaries;
     }
 
-    glm::vec3 temp((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH);
-    glm::vec3 activeMin = glm::floor(activeArea.minVec/temp)*temp;
-    glm::vec3 activeMax = glm::ceil(activeArea.maxVec/temp)*temp;
-
-    for (int i = activeMin.x; i < activeMax.x; i += CChunk::CHUNK_WIDTH) {
-        for (int j = activeMin.y; j < activeMax.y; j += CChunk::CHUNK_HEIGHT) {
-            for (int k = activeMin.z; k < activeMax.z; k += CChunk::CHUNK_DEPTH) {
+    for (int i = activeArea.minVec.x; i < activeArea.maxVec.x; i += CChunk::CHUNK_WIDTH) {
+        for (int j = activeArea.minVec.y; j < activeArea.maxVec.y; j += CChunk::CHUNK_HEIGHT) {
+            for (int k = activeArea.minVec.z; k < activeArea.maxVec.z; k += CChunk::CHUNK_DEPTH) {
                 utils3d::AABBox chunkBox(glm::vec3(i, j, k), glm::vec3(i+CChunk::CHUNK_WIDTH, j+(int)CChunk::CHUNK_HEIGHT, k+CChunk::CHUNK_DEPTH));
-                if (!utils3d::AABBcollision(chunkBox, treeArea)) {
+                if (!utils3d::AABBcollision(chunkBox, treeArea) || getChunk(chunkBox.minVec, ALL) == nullptr) {
                     addChunk(chunkBox.minVec);
                 }
             }
@@ -201,33 +197,23 @@ void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
         }
     }
 
-    // Looking for a chance to shrink the bounding box
-
-    if (node->node.subdivisions[1][0][0] == nullptr && node->node.subdivisions[1][1][0] == nullptr &&
-        node->node.subdivisions[1][1][1] == nullptr && node->node.subdivisions[1][0][1] == nullptr) {
-        node->node.boundaries.maxVec.x = node->node.center.x;
-    }
-    if (node->node.subdivisions[0][0][0] == nullptr && node->node.subdivisions[0][1][0] == nullptr &&
-        node->node.subdivisions[0][1][1] == nullptr && node->node.subdivisions[0][0][1] == nullptr) {
-        node->node.boundaries.minVec.x = node->node.center.x;
-    }
-
-    if (node->node.subdivisions[0][1][0] == nullptr && node->node.subdivisions[1][1][0] == nullptr &&
-        node->node.subdivisions[1][1][1] == nullptr && node->node.subdivisions[0][1][1] == nullptr) {
-        node->node.boundaries.maxVec.y = node->node.center.y;
-    }
-    if (node->node.subdivisions[0][0][0] == nullptr && node->node.subdivisions[1][0][0] == nullptr &&
-        node->node.subdivisions[1][0][1] == nullptr && node->node.subdivisions[0][0][1] == nullptr) {
-        node->node.boundaries.minVec.y = node->node.center.y;
-    }
-
-    if (node->node.subdivisions[0][0][1] == nullptr && node->node.subdivisions[1][0][1] == nullptr &&
-        node->node.subdivisions[1][1][1] == nullptr && node->node.subdivisions[0][1][1] == nullptr) {
-        node->node.boundaries.maxVec.z = node->node.center.z;
-    }
-    if (node->node.subdivisions[0][0][0] == nullptr && node->node.subdivisions[1][0][0] == nullptr &&
-        node->node.subdivisions[1][1][0] == nullptr && node->node.subdivisions[0][1][0] == nullptr) {
-        node->node.boundaries.minVec.z = node->node.center.z;
+    // Resizing bounding box
+    node->node.boundaries.minVec = node->node.boundaries.maxVec = node->node.center;
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                if (node->node.subdivisions[i][j][k] != nullptr) {
+                    if (node->node.subdivisions[i][j][k]->isLeaf) {
+                        glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
+                        node->node.boundaries.addPoint(chunkPos);
+                        node->node.boundaries.addPoint(chunkPos + glm::vec3((int)CChunk::CHUNK_WIDTH, (int)CChunk::CHUNK_HEIGHT, (int)CChunk::CHUNK_DEPTH));
+                    } else {
+                        node->node.boundaries.addPoint(node->node.subdivisions[i][j][k]->node.boundaries.minVec);
+                        node->node.boundaries.addPoint(node->node.subdivisions[i][j][k]->node.boundaries.maxVec);
+                    }
+                }
+            }
+        }
     }
 }
 

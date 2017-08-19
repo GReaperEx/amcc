@@ -40,6 +40,10 @@ public:
         isRenderable = false;
         neededMeshUpdate = false;
         neededStateUpdate = false;
+
+        vertices = nullptr;
+        uvs = nullptr;
+        normals = nullptr;
     }
     CChunk(const glm::vec3& gPos, const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
         position = gPos;
@@ -53,6 +57,16 @@ public:
     }
     ~CChunk() {
         glDeleteBuffers(3, bufferIDs);
+
+        if (vertices) {
+            delete vertices;
+        }
+        if (uvs) {
+            delete uvs;
+        }
+        if (normals) {
+            delete normals;
+        }
     }
 
     void initOpenGLState() {
@@ -84,8 +98,11 @@ public:
         isRenderable = true;
 
         delete vertices;
+        vertices = nullptr;
         delete uvs;
+        uvs = nullptr;
         delete normals;
+        normals = nullptr;
     }
 
     const glm::vec3& getPosition() const {

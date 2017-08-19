@@ -83,9 +83,9 @@ void CCamera::update(float dT)
         direction -= upVector;
     }
     if (keepMoving[4]) {
-        direction -= lookVector;
+        direction -= glm::vec3(lookVector.x, 0.0f, lookVector.z);
     } else if (keepMoving[5]) {
-        direction += lookVector;
+        direction += glm::vec3(lookVector.x, 0.0f, lookVector.z);
     }
     if (direction != glm::vec3(0, 0, 0)) {
         direction = glm::normalize(direction);
