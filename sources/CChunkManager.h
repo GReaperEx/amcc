@@ -18,6 +18,15 @@
 class CChunkManager
 {
 public:
+    // Setting ultimate limits for generation
+    static const int MIN_CHUNK_X = INT_MIN;
+    static const int MAX_CHUNK_X = INT_MAX;
+    static const int MIN_CHUNK_Z = INT_MIN;
+    static const int MAX_CHUNK_Z = INT_MAX;
+    static const int MIN_CHUNK_Y = 0;
+    static const int MAX_CHUNK_Y = CChunk::CHUNK_HEIGHT;
+
+public:
     CChunkManager() {
         blockAtlas = nullptr;
         keepRunning = true;

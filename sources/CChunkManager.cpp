@@ -98,9 +98,14 @@ void CChunkManager::genThreadFunc()
     while (keepRunning) {
         high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
+        glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
+        glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
+        glm::vec3 farVec(camera->getFarClipDistance());
+
         std::vector<CChunk*> fetchedChunks;
         glm::vec3 camPos = camera->getPosition();
-        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)), CChunkTree::INITIALIZED);
+
+        chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum(), CChunkTree::NEED_GENERATION);
 
         // Sorting the chunks from closest (to the camera), using a lambda function
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
@@ -109,27 +114,55 @@ void CChunkManager::genThreadFunc()
             return glm::dot(aVec, aVec) < glm::dot(bVec, bVec);
         });
 
+        // Generating chunks visible to the camera
         for (CChunk* curChunk : fetchedChunks) {
-            if (!curChunk->isChunkGenerated()) {
-                CChunk* chunkArea[6];
-                glm::vec3 pos = curChunk->getPosition();
-                chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
-                chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
-                chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
-                chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
-                chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-                chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-                curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
-            }
+            CChunk* chunkArea[6];
+            glm::vec3 pos = curChunk->getPosition();
+            chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
 
             if (!keepRunning) {
-                userRequest = false;
-                break;
+                return;
             }
 
             // Don't execute for more than a second
             if (duration_cast<seconds>(high_resolution_clock::now() - startTime).count() >= 1) {
                 break;
+            }
+        }
+
+        fetchedChunks.clear();
+        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)), CChunkTree::NEED_GENERATION);
+
+        std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
+            glm::vec3 aVec = a->getPosition() - camera->getPosition();
+            glm::vec3 bVec = b->getPosition() - camera->getPosition();
+            return glm::dot(aVec, aVec) < glm::dot(bVec, bVec);
+        });
+
+        // Generating everything else
+        for (CChunk* curChunk : fetchedChunks) {
+            if (duration_cast<seconds>(high_resolution_clock::now() - startTime).count() >= 1) {
+                break;
+            }
+
+            CChunk* chunkArea[6];
+            glm::vec3 pos = curChunk->getPosition();
+            chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
+
+            if (!keepRunning) {
+                return;
             }
         }
 
@@ -143,9 +176,14 @@ void CChunkManager::updateThreadFunc()
     while (keepRunning) {
         high_resolution_clock::time_point startTime = high_resolution_clock::now();
 
+        glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
+        glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
+        glm::vec3 farVec(camera->getFarClipDistance());
+
         std::vector<CChunk*> fetchedChunks;
         glm::vec3 camPos = camera->getPosition();
-        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(camPos+glm::vec3(-16*16, 0.0f, -16*16), camPos+glm::vec3(16*16, 256.0f, 16*16)), CChunkTree::NEED_MESH_UPDATE);
+
+        chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum(), CChunkTree::NEED_MESH_UPDATE);
 
         // Sorting the chunks from closest (to the camera), using a lambda function
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
@@ -154,6 +192,7 @@ void CChunkManager::updateThreadFunc()
             return glm::dot(aVec, aVec) < glm::dot(bVec, bVec);
         });
 
+        // Updating chunks visible to camera
         for (CChunk* curChunk : fetchedChunks) {
             CChunk* chunkArea[6];
             glm::vec3 pos = curChunk->getPosition();
@@ -165,9 +204,11 @@ void CChunkManager::updateThreadFunc()
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
             curChunk->genMesh(blockInfo, chunkArea);
 
-            if (!keepRunning || userRequest) {
-                userRequest = false;
+            if (userRequest) {
                 break;
+            }
+            if (!keepRunning) {
+                return;
             }
 
             // Don't execute for more than a second
@@ -176,6 +217,42 @@ void CChunkManager::updateThreadFunc()
             }
         }
 
+        fetchedChunks.clear();
+        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)), CChunkTree::NEED_MESH_UPDATE);
+        std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](CChunk* a, CChunk* b) {
+            glm::vec3 aVec = a->getPosition() - camera->getPosition();
+            glm::vec3 bVec = b->getPosition() - camera->getPosition();
+            return glm::dot(aVec, aVec) < glm::dot(bVec, bVec);
+        });
+
+        // Updating everything else
+        for (CChunk* curChunk : fetchedChunks) {
+            if (userRequest || duration_cast<seconds>(high_resolution_clock::now() - startTime).count() >= 1) {
+                break;
+            }
+
+            CChunk* chunkArea[6];
+            glm::vec3 pos = curChunk->getPosition();
+            chunkArea[0] = chunkTree.getChunk(pos + glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[1] = chunkTree.getChunk(pos - glm::vec3((float)CChunk::CHUNK_WIDTH, 0.0f, 0.0f));
+            chunkArea[2] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
+            chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
+            curChunk->genMesh(blockInfo, chunkArea);
+
+            if (userRequest) {
+                break;
+            }
+            if (!keepRunning) {
+                return;
+            }
+        }
+
+        if (userRequest) {
+            userRequest = false;
+            continue;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
@@ -183,11 +260,14 @@ void CChunkManager::updateThreadFunc()
 void CChunkManager::initfreeThreadFunc()
 {
     while (keepRunning) {
-        float cameraFar = camera->getFarClipDistance();
         glm::vec3 cameraPos = camera->getPosition();
 
         glm::vec3 chunkDims((int)CChunk::CHUNK_WIDTH, (int)CChunk::CHUNK_HEIGHT, (int)CChunk::CHUNK_DEPTH);
-        utils3d::AABBox activeArea(cameraPos - glm::vec3(cameraFar, 0.0f, cameraFar), cameraPos + glm::vec3(cameraFar, 0.0f, cameraFar));
+        glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
+        glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
+        glm::vec3 farVec(camera->getFarClipDistance());
+
+        utils3d::AABBox activeArea(glm::max(cameraPos - farVec, chunkMin), glm::min(cameraPos + farVec, chunkMax));
         activeArea.minVec = glm::floor(activeArea.minVec/chunkDims)*chunkDims;
         activeArea.maxVec = glm::ceil(activeArea.maxVec/chunkDims)*chunkDims;
 

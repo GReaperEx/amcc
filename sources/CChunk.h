@@ -77,6 +77,10 @@ public:
     void getBlockData(SBlock outputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) const {
         memcpy(outputData, chunkData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
+    void setBlockData(const SBlock inputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
+        memcpy(chunkData, inputData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
+        isGenerated = true;
+    }
 
     void genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6]);
     void genMesh(const CBlockInfo& blocks, CChunk* adjacent[6]); // Just generates data, doesn't call OpenGL

@@ -249,6 +249,7 @@ CChunkTree::TreeLeafNode* CChunkTree::getLeaf(TreeLeafNode* node, const glm::vec
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
@@ -287,6 +288,7 @@ void CChunkTree::getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, c
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
@@ -322,6 +324,7 @@ void CChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& 
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
@@ -357,6 +360,7 @@ void CChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& outpu
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());

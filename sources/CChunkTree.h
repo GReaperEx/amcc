@@ -11,7 +11,8 @@
 class CChunkTree
 {
 public:
-    enum EChunkFlags { UNINITIALIZED = 1, INITIALIZED = 2, GENERATED = 4, NEED_MESH_UPDATE = 8, NEED_STATE_UPDATE = 16, RENDERABLE = 32, ALL = 63 };
+    enum EChunkFlags { UNINITIALIZED = 1, INITIALIZED = 2, NEED_GENERATION = 4, GENERATED = 8,
+                       NEED_MESH_UPDATE = 16, NEED_STATE_UPDATE = 32, RENDERABLE = 64, ALL = 127 };
 
     CChunkTree(): root(nullptr) {}
     ~CChunkTree() {
