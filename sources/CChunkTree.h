@@ -16,9 +16,7 @@ public:
 
     CChunkTree(): root(nullptr) {}
     ~CChunkTree() {
-        if (root) {
-            deleteAll(root);
-        }
+        deleteAll(root);
         while (!chunksToErase.empty()) {
             eraseChunks();
             SDL_Delay(10);
@@ -67,11 +65,8 @@ public:
 
     void clear() {
         std::lock_guard<std::mutex> lck(rootBeingModified);
-        if (root) {
-            deleteAll(root);
-            delete root;
-            root = nullptr;
-        }
+        deleteAll(root);
+        root = nullptr;
     }
 
     // Generates new chunks inside the active area

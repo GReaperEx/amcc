@@ -219,20 +219,20 @@ void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
 
 void CChunkTree::deleteAll(TreeLeafNode* node)
 {
-    if (node->isLeaf) {
-        std::lock_guard<std::mutex> lck(erasedBeingModified);
-        chunksToErase.push_back(node->leaf.chunk);
-    } else {
-        for (int i = 0; i < 2; ++i) {
-            for (int j = 0; j < 2; ++j) {
-                for (int k = 0; k < 2; ++k) {
-                    if (node->node.subdivisions[i][j][k]) {
+    if (node) {
+        if (node->isLeaf) {
+            std::lock_guard<std::mutex> lck(erasedBeingModified);
+            chunksToErase.push_back(node->leaf.chunk);
+        } else {
+            for (int i = 0; i < 2; ++i) {
+                for (int j = 0; j < 2; ++j) {
+                    for (int k = 0; k < 2; ++k) {
                         deleteAll(node->node.subdivisions[i][j][k]);
-                        delete node->node.subdivisions[i][j][k];
                     }
                 }
             }
         }
+        delete node;
     }
 }
 

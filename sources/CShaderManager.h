@@ -10,7 +10,7 @@
 class CShaderManager
 {
 public:
-    CShaderManager() {}
+    CShaderManager() { currentShader = 0; }
     ~CShaderManager();
 
     bool addShader(const std::string& name, const std::string& vert_path, const std::string& frag_path);
