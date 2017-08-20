@@ -138,13 +138,18 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
             chunksToInit.push_back(newNode->leaf.chunk);
         }
     } else if (node->node.subdivisions[indX][indY][indZ]->isLeaf) {
+        if (node->node.subdivisions[indX][indY][indZ]->leaf.chunk->getPosition() == position) {
+            return;
+        }
+
         TreeLeafNode *newNode = new TreeLeafNode;
         memset(newNode, 0, sizeof(TreeLeafNode));
         newNode->node.center = position;
         newNode->node.boundaries = utils3d::AABBox(position, position);
-        addLeaf(newNode, position);
+        addLeaf(newNode, position, leaf);
         addLeaf(newNode, node->node.subdivisions[indX][indY][indZ]->leaf.chunk->getPosition(), node->node.subdivisions[indX][indY][indZ]);
         node->node.subdivisions[indX][indY][indZ] = newNode;
+
     } else {
         addLeaf(node->node.subdivisions[indX][indY][indZ], position);
     }
@@ -176,7 +181,7 @@ void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
         if (temp->isLeaf) {
             if (temp->leaf.chunk->getPosition() == position) {
                 std::lock_guard<std::mutex> lck(erasedBeingModified);
-                chunksToErase.push_back(temp->leaf.chunk);
+                chunksToErase.push_back(ChunkTimeBundle(temp->leaf.chunk));
                 delete temp;
                 node->node.subdivisions[indX][indY][indZ] = nullptr;
             }
@@ -222,7 +227,7 @@ void CChunkTree::deleteAll(TreeLeafNode* node)
     if (node) {
         if (node->isLeaf) {
             std::lock_guard<std::mutex> lck(erasedBeingModified);
-            chunksToErase.push_back(node->leaf.chunk);
+            chunksToErase.push_back(ChunkTimeBundle(node->leaf.chunk));
         } else {
             for (int i = 0; i < 2; ++i) {
                 for (int j = 0; j < 2; ++j) {

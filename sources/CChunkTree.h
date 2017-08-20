@@ -7,6 +7,8 @@
 #include <mutex>
 
 #include <SDL2/SDL.h>
+#include <new>
+#include <iostream>
 
 class CChunkTree
 {
@@ -142,7 +144,7 @@ private:
         CChunk* chunk;
         std::chrono::high_resolution_clock::time_point eraseTime;
 
-        ChunkTimeBundle(CChunk* chunk) {
+        explicit ChunkTimeBundle(CChunk* chunk) {
             this->chunk = chunk;
             eraseTime = std::chrono::high_resolution_clock::now();
         }

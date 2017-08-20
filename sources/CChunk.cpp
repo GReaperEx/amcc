@@ -6,6 +6,9 @@
 void CChunk::genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6])
 {
     // Simple generation, just for testing
+    vertices.clear();
+    uvs.clear();
+    normals.clear();
 
     uint16_t stoneID = blocks.getBlockID("stone");
     uint16_t dirtID = blocks.getBlockID("dirt");
