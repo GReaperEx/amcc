@@ -50,7 +50,9 @@ private:
         float result = 0.0f;
 
         for (Wave curWave : waves) {
-            result += glm::pow(noiseGen.noise(x*curWave.frequency, 0.0f, z*curWave.frequency), curWave.exponent)*curWave.amplitude + curWave.offset;
+            result += glm::pow(noiseGen.noise(x*curWave.frequency + curWave.offset,
+                                              0.0f,
+                                              z*curWave.frequency + curWave.offset), curWave.exponent)*curWave.amplitude;
         }
 
         return result;
