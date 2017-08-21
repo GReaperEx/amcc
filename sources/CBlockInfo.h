@@ -26,12 +26,6 @@ public:
         memcpy(blockInfoMap[id].UVs, uvCoords, sizeof(glm::vec2)*6*4);
     }
 
-    void remBlock(const std::string& name) {
-        uint16_t id = idMap[name];
-        idMap.erase(name);
-        blockInfoMap.erase(id);
-    }
-
     uint16_t getBlockID(const std::string& name) const {
         return idMap.find(name)->second;
     }

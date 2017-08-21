@@ -69,7 +69,7 @@ private:
     Uint32 lastUpdate;
 
     CChunkManager chunkManager;
-    CNoiseGenerator noiseGen;
+    std::vector<CNoiseGenerator> noiseGens;
 };
 
 #endif // C_GAME_ENGINE_H

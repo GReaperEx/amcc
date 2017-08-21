@@ -9,7 +9,7 @@
 
 #include "CBlockInfo.h"
 #include "CNoiseGenerator.h"
-#include "IRefCounted.h"
+#include "CBiomeManager.h"
 
 class CChunk
 {
@@ -24,6 +24,7 @@ public:
     struct SBlock
     {
         uint16_t id;
+        uint16_t meta;
     };
 
     static const int CHUNK_WIDTH = 16;
@@ -41,7 +42,7 @@ public:
         neededMeshUpdate = false;
         neededStateUpdate = false;
     }
-    CChunk(const glm::vec3& gPos, const SBlock bakedData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
+    CChunk(const glm::vec3& gPos, const SBlock *bakedData) {
         position = gPos;
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
@@ -60,16 +61,16 @@ public:
         isStateInited = true;
     }
 
-    void getBlockData(SBlock outputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) const {
+    void getBlockData(SBlock *outputData) const {
         memcpy(outputData, chunkData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
-    void setBlockData(const SBlock inputData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH]) {
+    void setBlockData(const SBlock *inputData) {
         memcpy(chunkData, inputData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
         isGenerated = true;
         neededMeshUpdate = true;
     }
 
-    void genBlocks(const CBlockInfo& blocks, const CNoiseGenerator& noiseGen, CChunk* adjacent[6]);
+    void genBlocks(const CBiomeManager& biomeManager, const CBlockInfo& blocks, const std::vector<CNoiseGenerator>& noiseGen, CChunk* adjacent[6]);
     void genMesh(const CBlockInfo& blocks, CChunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();
@@ -118,7 +119,7 @@ public:
     }
 
 private:
-    SBlock chunkData[CHUNK_HEIGHT][CHUNK_DEPTH][CHUNK_WIDTH];
+    SBlock chunkData[CHUNK_WIDTH][CHUNK_DEPTH][CHUNK_HEIGHT];
     glm::vec3 position;
 
     GLuint bufferIDs[3];

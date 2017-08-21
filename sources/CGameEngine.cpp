@@ -98,9 +98,10 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     lastUpdate = SDL_GetTicks();
 
     // TODO: The seed given by the user should be passed instead
-    noiseGen.reseed(123);
+    noiseGens.push_back(CNoiseGenerator(123));
+    noiseGens.push_back(CNoiseGenerator(123*2));
 
-    chunkManager.init(textureManager, noiseGen, &camera);
+    chunkManager.init(textureManager, noiseGens, &camera);
 }
 
 void CGameEngine::clearState()

@@ -45,6 +45,9 @@
 		<Unit filename="shaders/default.vert" />
 		<Unit filename="shaders/simple.frag" />
 		<Unit filename="shaders/simple.vert" />
+		<Unit filename="sources/CBiome.cpp" />
+		<Unit filename="sources/CBiome.h" />
+		<Unit filename="sources/CBiomeManager.h" />
 		<Unit filename="sources/CBlockInfo.h" />
 		<Unit filename="sources/CBoxOutline.cpp" />
 		<Unit filename="sources/CBoxOutline.h" />

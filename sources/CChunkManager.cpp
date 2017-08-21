@@ -7,12 +7,13 @@
 
 #include <SDL2/SDL_image.h>
 
-void CChunkManager::init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera)
+void CChunkManager::init(CTextureManager& textureManager, const std::vector<CNoiseGenerator>& noiseGens, CCamera* camera)
 {
-    this->noiseGen = noiseGen;
+    this->noiseGens = noiseGens;
     this->camera = camera;
 
     loadBlockInfo(textureManager);
+    biomeManager.loadBiomeInfo();
 
     boxOutline.init(glm::vec3(0, 0, 0));
 
@@ -124,7 +125,7 @@ void CChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-            curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
+            curChunk->genBlocks(biomeManager, blockInfo, noiseGens, chunkArea);
 
             if (!keepRunning) {
                 return;
@@ -159,7 +160,7 @@ void CChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)CChunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)CChunk::CHUNK_DEPTH));
-            curChunk->genBlocks(blockInfo, noiseGen, chunkArea);
+            curChunk->genBlocks(biomeManager, blockInfo, noiseGens, chunkArea);
 
             if (!keepRunning) {
                 return;

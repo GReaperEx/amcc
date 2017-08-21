@@ -11,6 +11,10 @@
 class CNoiseGenerator
 {
 public:
+    explicit CNoiseGenerator(unsigned seed) {
+        reseed(seed);
+    }
+
     void reseed(unsigned seed) {
         for (int i = 0; i < 256; ++i) {
             p[i] = i;
@@ -50,23 +54,7 @@ public:
             lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),
             grad(p[BA + 1], x - 1, y, z - 1)),
             lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
-            grad(p[BB + 1], x - 1, y - 1, z - 1))));
-    }
-
-    float octaveNoise(float x, float y, float z, int octaves) const {
-        float result = 0.0f;
-        float amp = 1.0f;
-
-        for (int i = 0; i < octaves; ++i)
-        {
-            result += noise(x, y, z) * amp;
-            x *= 2.0f;
-            y *= 2.0f;
-            z *= 2.0f;
-            amp *= 0.5f;
-        }
-
-        return result;
+            grad(p[BB + 1], x - 1, y - 1, z - 1))))*0.5f + 0.5f;
     }
 
 private:

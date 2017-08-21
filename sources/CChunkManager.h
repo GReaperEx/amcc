@@ -8,6 +8,7 @@
 #include "CBoxOutline.h"
 #include "CCamera.h"
 #include "CChunkTree.h"
+#include "CBiomeManager.h"
 
 #include <set>
 #include <thread>
@@ -50,7 +51,7 @@ public:
         }
     }
 
-    void init(CTextureManager& textureManager, const CNoiseGenerator& noiseGen, CCamera* camera);
+    void init(CTextureManager& textureManager, const std::vector<CNoiseGenerator>& noiseGens, CCamera* camera);
     void renderChunks(CShaderManager& shaderManager, const glm::mat4& vp);
 
     void replaceBlock(const CChunk::BlockDetails& newBlock);
@@ -68,6 +69,7 @@ private:
     void findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]);
     void loadBlockInfo(CTextureManager& textureManager);
 
+
     CChunkTree chunkTree;
 
     std::thread chunkGenThread;
@@ -81,7 +83,8 @@ private:
 
     CTexture *blockAtlas;
     CBlockInfo blockInfo;
-    CNoiseGenerator noiseGen;
+    CBiomeManager biomeManager;
+    std::vector<CNoiseGenerator> noiseGens;
     CBoxOutline boxOutline;
     CCamera* camera;
 };

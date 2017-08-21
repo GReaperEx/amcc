@@ -25,6 +25,12 @@ bool CCamera::handleEvent(const SDL_Event& event)
         case SDLK_w:
             keepMoving[5] = true;
         break;
+        case SDLK_UP:
+            farClipDistance += 8;
+        break;
+        case SDLK_DOWN:
+            farClipDistance -= 8;
+        break;
         default:
             return false;
         }
