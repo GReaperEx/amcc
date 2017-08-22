@@ -13,13 +13,8 @@ class CBiomeManager
 {
 public:
     const CBiome& getBiome(float occurrence) const {
-        auto it = biomes.begin();
-        for (; it != biomes.end(); ++it) {
-            if (it->hasDesiredOccurrence(occurrence)) {
-                break;
-            }
-        }
-        return *it;
+        CBiome searchTerm(occurrence, occurrence);
+        return *std::lower_bound(biomes.begin(), biomes.end(), searchTerm);
     }
 
     void loadBiomeInfo() {
@@ -31,6 +26,8 @@ public:
             infile.ignore(100, '{');
             biomes.push_back(CBiome(infile, biomeName));
         }
+
+        std::sort(biomes.begin(), biomes.end());
     }
 
 private:

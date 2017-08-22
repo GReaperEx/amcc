@@ -11,6 +11,10 @@ class CBiome
 {
 public:
     CBiome(std::ifstream& infile, const std::string& name);
+    CBiome(float minOccur, float maxOccur) {
+        minOccurrence = minOccur;
+        maxOccurrence = maxOccur;
+    }
 
     // @column: Should actually be CChunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
@@ -27,6 +31,11 @@ public:
 
     const std::string getName() const {
         return name;
+    }
+
+    // Needed for sorting and binary search
+    bool operator< (const CBiome& other) const {
+        return maxOccurrence <= other.minOccurrence;
     }
 
 private:
