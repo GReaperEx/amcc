@@ -4,8 +4,8 @@
 #include <iostream>
 
 #include "CGameEngine.h"
-#include "CTextureManager.h"
-#include "CShaderManager.h"
+#include "TextureManager.h"
+#include "ShaderManager.h"
 
 int main()
 {

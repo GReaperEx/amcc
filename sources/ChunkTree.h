@@ -1,7 +1,7 @@
-#ifndef C_CHUNK_TREE_H
-#define C_CHUNK_TREE_H
+#ifndef CHUNK_TREE_H
+#define CHUNK_TREE_H
 
-#include "CChunk.h"
+#include "Chunk.h"
 #include "utils3d.h"
 
 #include <mutex>
@@ -10,14 +10,14 @@
 #include <new>
 #include <iostream>
 
-class CChunkTree
+class ChunkTree
 {
 public:
     enum EChunkFlags { UNINITIALIZED = 1, INITIALIZED = 2, NEED_GENERATION = 4, GENERATED = 8,
                        NEED_MESH_UPDATE = 16, NEED_STATE_UPDATE = 32, RENDERABLE = 64, ALL = 127 };
 
-    CChunkTree(): root(nullptr) {}
-    ~CChunkTree() {
+    ChunkTree(): root(nullptr) {}
+    ~ChunkTree() {
         deleteAll(root);
         while (!chunksToErase.empty()) {
             eraseChunks();
@@ -28,7 +28,7 @@ public:
     void addChunk(const glm::vec3& position);
     void remChunk(const glm::vec3& position);
 
-    CChunk* getChunk(const glm::vec3& pos, EChunkFlags flags = GENERATED) {
+    Chunk* getChunk(const glm::vec3& pos, EChunkFlags flags = GENERATED) {
         std::lock_guard<std::mutex> lck(rootBeingModified);
         TreeLeafNode* foundLeaf = nullptr;
         if (root) {
@@ -40,7 +40,7 @@ public:
         return nullptr;
     }
 
-    void getChunkArea(std::vector<CChunk*>& output, const utils3d::AABBox& area, EChunkFlags flags = GENERATED) {
+    void getChunkArea(std::vector<Chunk*>& output, const utils3d::AABBox& area, EChunkFlags flags = GENERATED) {
         std::lock_guard<std::mutex> lck(rootBeingModified);
         output.clear();
         if (root) {
@@ -48,7 +48,7 @@ public:
         }
     }
 
-    void getIntersectingChunks(std::vector<CChunk*>& output,
+    void getIntersectingChunks(std::vector<Chunk*>& output,
                                const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags = RENDERABLE) {
         std::lock_guard<std::mutex> lck(rootBeingModified);
         output.clear();
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void getFrustumChunks(std::vector<CChunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags = RENDERABLE) {
+    void getFrustumChunks(std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags = RENDERABLE) {
         std::lock_guard<std::mutex> lck(rootBeingModified);
         output.clear();
         if (root) {
@@ -81,7 +81,7 @@ public:
     // Main thread only!
     void initChunks() {
         std::lock_guard<std::mutex> lck(initedBeingModified);
-        for (CChunk* curChunk : chunksToInit) {
+        for (Chunk* curChunk : chunksToInit) {
             curChunk->initOpenGLState();
         }
         chunksToInit.clear();
@@ -112,9 +112,9 @@ private:
     void deleteAll(TreeLeafNode* node);
 
     TreeLeafNode* getLeaf(TreeLeafNode* node, const glm::vec3& pos, EChunkFlags flags) const;
-    void getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::AABBox& area, EChunkFlags flags) const;
-    void getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const;
-    void getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const;
+    void getLeafArea(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::AABBox& area, EChunkFlags flags) const;
+    void getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const;
+    void getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const;
 
     union TreeLeafNode
     {
@@ -129,22 +129,22 @@ private:
         } node;
         struct { // isLeaf == true
             bool isLeaf;
-            CChunk *chunk;
+            Chunk *chunk;
         } leaf;
     };
     std::mutex rootBeingModified;
     TreeLeafNode *root;
 
     std::mutex initedBeingModified;
-    std::vector<CChunk*> chunksToInit;
+    std::vector<Chunk*> chunksToInit;
 
     std::mutex erasedBeingModified;
     struct ChunkTimeBundle
     {
-        CChunk* chunk;
+        Chunk* chunk;
         std::chrono::high_resolution_clock::time_point eraseTime;
 
-        explicit ChunkTimeBundle(CChunk* chunk) {
+        explicit ChunkTimeBundle(Chunk* chunk) {
             this->chunk = chunk;
             eraseTime = std::chrono::high_resolution_clock::now();
         }
@@ -152,4 +152,4 @@ private:
     std::vector<ChunkTimeBundle> chunksToErase;
 };
 
-#endif // C_CHUNK_TREE_H
+#endif // CHUNK_TREE_H

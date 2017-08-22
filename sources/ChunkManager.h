@@ -1,14 +1,14 @@
-#ifndef C_CHUNK_MANAGER_H
-#define C_CHUNK_MANAGER_H
+#ifndef CHUNK_MANAGER_H
+#define CHUNK_MANAGER_H
 
-#include "CChunk.h"
-#include "CBlockInfo.h"
+#include "Chunk.h"
+#include "BlockInfo.h"
 
-#include "CTextureManager.h"
-#include "CBoxOutline.h"
-#include "CCamera.h"
-#include "CChunkTree.h"
-#include "CBiomeManager.h"
+#include "TextureManager.h"
+#include "BoxOutline.h"
+#include "Camera.h"
+#include "ChunkTree.h"
+#include "BiomeManager.h"
 
 #include <set>
 #include <thread>
@@ -16,7 +16,7 @@
 #include <atomic>
 #include <condition_variable>
 
-class CChunkManager
+class ChunkManager
 {
 public:
     // Setting ultimate limits for generation
@@ -25,16 +25,16 @@ public:
     static const int MIN_CHUNK_Z = INT_MIN;
     static const int MAX_CHUNK_Z = INT_MAX;
     static const int MIN_CHUNK_Y = 0;
-    static const int MAX_CHUNK_Y = CChunk::CHUNK_HEIGHT;
+    static const int MAX_CHUNK_Y = Chunk::CHUNK_HEIGHT;
 
 public:
-    CChunkManager() {
+    ChunkManager() {
         blockAtlas = nullptr;
         keepRunning = true;
         userRequest = false;
     }
 
-    ~CChunkManager() {
+    ~ChunkManager() {
         if (blockAtlas) {
             blockAtlas->drop();
         }
@@ -51,26 +51,26 @@ public:
         }
     }
 
-    void init(CTextureManager& textureManager, const std::vector<CNoiseGenerator>& noiseGens, CCamera* camera);
-    void renderChunks(CShaderManager& shaderManager, const glm::mat4& vp);
+    void init(TextureManager& textureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera);
+    void renderChunks(ShaderManager& shaderManager, const glm::mat4& vp);
 
-    void replaceBlock(const CChunk::BlockDetails& newBlock);
-    bool traceRayToBlock(CChunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+    void replaceBlock(const Chunk::BlockDetails& newBlock);
+    bool traceRayToBlock(Chunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                          bool ignoreAir = true);
 
-    void renderOutline(CShaderManager& shaderManager, const glm::mat4& vp) {
-        CChunk::BlockDetails lookBlock;
+    void renderOutline(ShaderManager& shaderManager, const glm::mat4& vp) {
+        Chunk::BlockDetails lookBlock;
         if (traceRayToBlock(lookBlock, camera->getPosition(), camera->getLookVector())) {
             boxOutline.render(shaderManager, vp, lookBlock.position);
         }
     }
 
 private:
-    void findAdjacentChunks(const CChunk& center, CChunk *adjacent[6]);
-    void loadBlockInfo(CTextureManager& textureManager);
+    void findAdjacentChunks(const Chunk& center, Chunk *adjacent[6]);
+    void loadBlockInfo(TextureManager& textureManager);
 
 
-    CChunkTree chunkTree;
+    ChunkTree chunkTree;
 
     std::thread chunkGenThread;
     void genThreadFunc();
@@ -81,12 +81,12 @@ private:
     std::atomic_bool keepRunning;
     std::atomic_bool userRequest;
 
-    CTexture *blockAtlas;
-    CBlockInfo blockInfo;
-    CBiomeManager biomeManager;
-    std::vector<CNoiseGenerator> noiseGens;
-    CBoxOutline boxOutline;
-    CCamera* camera;
+    Texture *blockAtlas;
+    BlockInfo blockInfo;
+    BiomeManager biomeManager;
+    std::vector<NoiseGenerator> noiseGens;
+    BoxOutline boxOutline;
+    Camera* camera;
 };
 
-#endif // C_CHUNK_MANAGER_H
+#endif // CHUNK_MANAGER_H

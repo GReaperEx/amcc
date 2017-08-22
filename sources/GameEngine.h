@@ -1,5 +1,5 @@
-#ifndef C_GAME_ENGINE_H
-#define C_GAME_ENGINE_H
+#ifndef GAME_ENGINE_H
+#define GAME_ENGINE_H
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -8,12 +8,12 @@
 
 #include <string>
 
-#include "CShaderManager.h"
-#include "CTextureManager.h"
-#include "CCamera.h"
+#include "ShaderManager.h"
+#include "TextureManager.h"
+#include "Camera.h"
 
-#include "CChunkManager.h"
-#include "CNoiseGenerator.h"
+#include "ChunkManager.h"
+#include "NoiseGenerator.h"
 
 class CGameEngine
 {
@@ -60,16 +60,16 @@ private:
 
     GLuint vtxArrayID;
 
-    CShaderManager shaderManager;
-    CTextureManager textureManager;
+    ShaderManager shaderManager;
+    TextureManager textureManager;
 
-    CCamera camera;
+    Camera camera;
     bool cameraEnabled;
 
     Uint32 lastUpdate;
 
-    CChunkManager chunkManager;
-    std::vector<CNoiseGenerator> noiseGens;
+    ChunkManager chunkManager;
+    std::vector<NoiseGenerator> noiseGens;
 };
 
-#endif // C_GAME_ENGINE_H
+#endif // GAME_ENGINE_H

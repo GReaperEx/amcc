@@ -1,30 +1,30 @@
-#ifndef C_BIOME_H
-#define C_BIOME_H
+#ifndef BIOME_H
+#define BIOME_H
 
-#include "CBlockInfo.h"
-#include "CNoiseGenerator.h"
+#include "BlockInfo.h"
+#include "NoiseGenerator.h"
 
 #include <fstream>
 #include <string>
 
-class CBiome
+class Biome
 {
 public:
-    CBiome(std::ifstream& infile, const std::string& name);
-    CBiome(float minOccur, float maxOccur) {
+    Biome(std::ifstream& infile, const std::string& name);
+    Biome(float minOccur, float maxOccur) {
         minOccurrence = minOccur;
         maxOccurrence = maxOccur;
     }
 
-    // @column: Should actually be CChunk::SBlock
+    // @column: Should actually be Chunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
-    void genChunkColumn(void *column, const CBlockInfo& blockInfo, int surfaceHeight) const;
+    void genChunkColumn(void *column, const BlockInfo& blockInfo, int surfaceHeight) const;
 
     bool hasDesiredOccurrence(float occurrence) const {
         return minOccurrence <= occurrence && occurrence < maxOccurrence;
     }
 
-    int calcSurfaceHeight(int x, int z, const CNoiseGenerator& noiseGen) const {
+    int calcSurfaceHeight(int x, int z, const NoiseGenerator& noiseGen) const {
         float genNoise = calcNoise(x, z, genOctaves, noiseGen);
         return (int)glm::clamp((int)(minHeight + genNoise), minHeight, maxHeight);
     }
@@ -34,7 +34,7 @@ public:
     }
 
     // Needed for sorting and binary search
-    bool operator< (const CBiome& other) const {
+    bool operator< (const Biome& other) const {
         return maxOccurrence <= other.minOccurrence;
     }
 
@@ -64,7 +64,7 @@ private:
     float minOccurrence;
     float maxOccurrence;
 
-    float calcNoise(int x, int z, const std::vector<Wave>& waves, const CNoiseGenerator& noiseGen) const {
+    float calcNoise(int x, int z, const std::vector<Wave>& waves, const NoiseGenerator& noiseGen) const {
         float result = 0.0f;
 
         for (Wave curWave : waves) {
@@ -77,4 +77,4 @@ private:
     }
 };
 
-#endif // C_BIOME_H
+#endif // BIOME_H

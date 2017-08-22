@@ -1,5 +1,5 @@
-#ifndef C_TEXTURE_H
-#define C_TEXTURE_H
+#ifndef TEXTURE_H
+#define TEXTURE_H
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -10,20 +10,20 @@
 
 #include "IRefCounted.h"
 
-class CTexture : public IRefCounted
+class Texture : public IRefCounted
 {
 public:
-    CTexture(const std::string& file, bool genMipmaps = false,
+    Texture(const std::string& file, bool genMipmaps = false,
                                       GLenum magFilter = GL_NEAREST,
                                       GLenum minFilter = GL_NEAREST,
                                       GLenum wrapS = GL_CLAMP_TO_EDGE,
                                       GLenum wrapT = GL_CLAMP_TO_EDGE);
-    CTexture(SDL_Surface* surface, bool genMipmaps = false,
+    Texture(SDL_Surface* surface, bool genMipmaps = false,
                                       GLenum magFilter = GL_NEAREST,
                                       GLenum minFilter = GL_NEAREST,
                                       GLenum wrapS = GL_CLAMP_TO_EDGE,
                                       GLenum wrapT = GL_CLAMP_TO_EDGE);
-    ~CTexture() {
+    ~Texture() {
         glDeleteTextures(1, &ID);
     }
 
@@ -75,4 +75,4 @@ private:
     bool hasAlpha;
 };
 
-#endif // C_TEXTURE_H
+#endif // TEXTURE_H

@@ -1,5 +1,5 @@
-#ifndef C_CAMERA_H
-#define C_CAMERA_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,10 +9,10 @@
 #include "IRefCounted.h"
 #include "utils3d.h"
 
-class CCamera : public IRefCounted
+class Camera : public IRefCounted
 {
 public:
-    CCamera()
+    Camera()
     : position(0), lookVector(0, 0, -1), upVector(0, 1, 0), fieldOfView(70), aspectRatio(4/3.0f), nearClipDistance(0.01f), farClipDistance(1000)
     {
         keepMoving[0] = false;
@@ -23,7 +23,7 @@ public:
         keepMoving[5] = false;
     }
 
-    CCamera(const glm::vec3& pos, const glm::vec3& look, const glm::vec3& up, float FoV, float aspect, float near, float far)
+    Camera(const glm::vec3& pos, const glm::vec3& look, const glm::vec3& up, float FoV, float aspect, float near, float far)
     : position(pos), lookVector(look), upVector(up), fieldOfView(FoV), aspectRatio(aspect), nearClipDistance(near), farClipDistance(far)
     {
         keepMoving[0] = false;
@@ -116,4 +116,4 @@ private:
     bool keepMoving[6]; // Right, Left, Up, Down, Back, Forward
 };
 
-#endif // C_CAMERA_H
+#endif // CAMERA_H

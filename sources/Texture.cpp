@@ -1,9 +1,9 @@
-#include "CTexture.h"
+#include "Texture.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-CTexture::CTexture(const std::string& file, bool genMipmaps, GLenum magFilter, GLenum minFilter, GLenum wrapS, GLenum wrapT)
+Texture::Texture(const std::string& file, bool genMipmaps, GLenum magFilter, GLenum minFilter, GLenum wrapS, GLenum wrapT)
 {
     this->magFilter = magFilter;
     this->minFilter = minFilter;
@@ -12,7 +12,7 @@ CTexture::CTexture(const std::string& file, bool genMipmaps, GLenum magFilter, G
     load(file, genMipmaps);
 }
 
-CTexture::CTexture(SDL_Surface* surface, bool genMipmaps, GLenum magFilter, GLenum minFilter, GLenum wrapS, GLenum wrapT)
+Texture::Texture(SDL_Surface* surface, bool genMipmaps, GLenum magFilter, GLenum minFilter, GLenum wrapS, GLenum wrapT)
 {
     this->magFilter = magFilter;
     this->minFilter = minFilter;
@@ -21,28 +21,28 @@ CTexture::CTexture(SDL_Surface* surface, bool genMipmaps, GLenum magFilter, GLen
     load(surface, genMipmaps);
 }
 
-void CTexture::setMagFilter(GLenum newMagFilter)
+void Texture::setMagFilter(GLenum newMagFilter)
 {
     magFilter = newMagFilter;
     glBindTexture(GL_TEXTURE_2D, ID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 }
 
-void CTexture::setMinFilter(GLenum newMinFilter)
+void Texture::setMinFilter(GLenum newMinFilter)
 {
     minFilter = newMinFilter;
     glBindTexture(GL_TEXTURE_2D, ID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 }
 
-void CTexture::setWrapS(GLenum newWrapS)
+void Texture::setWrapS(GLenum newWrapS)
 {
     wrapS = newWrapS;
     glBindTexture(GL_TEXTURE_2D, ID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
 }
 
-void CTexture::setWrapT(GLenum newWrapT)
+void Texture::setWrapT(GLenum newWrapT)
 {
     wrapT = newWrapT;
     glBindTexture(GL_TEXTURE_2D, ID);
@@ -50,7 +50,7 @@ void CTexture::setWrapT(GLenum newWrapT)
 }
 
 void fatalError(const std::string& prefix, const std::string& message);
-void CTexture::load(const std::string& file, bool genMipmaps)
+void Texture::load(const std::string& file, bool genMipmaps)
 {
     SDL_Surface *image = IMG_Load(file.c_str());
     if (image == nullptr) {
@@ -103,7 +103,7 @@ void CTexture::load(const std::string& file, bool genMipmaps)
     SDL_FreeSurface(image);
 }
 
-void CTexture::load(SDL_Surface* surface, bool genMipmaps)
+void Texture::load(SDL_Surface* surface, bool genMipmaps)
 {
     width = surface->w;
     height = surface->h;

@@ -1,19 +1,19 @@
-#include "CChunkTree.h"
+#include "ChunkTree.h"
 
-void CChunkTree::addChunk(const glm::vec3& position)
+void ChunkTree::addChunk(const glm::vec3& position)
 {
     std::lock_guard<std::mutex> lck(rootBeingModified);
     if (root == nullptr) {
         root = new TreeLeafNode;
         memset(root, 0, sizeof(TreeLeafNode));
         root->node.center = position;
-        root->node.boundaries = utils3d::AABBox(position, position + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+        root->node.boundaries = utils3d::AABBox(position, position + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
     }
 
     addLeaf(root, position);
 }
 
-void CChunkTree::remChunk(const glm::vec3& position)
+void ChunkTree::remChunk(const glm::vec3& position)
 {
     std::lock_guard<std::mutex> lck(rootBeingModified);
     if (root != nullptr) {
@@ -63,17 +63,17 @@ void CChunkTree::remChunk(const glm::vec3& position)
     }
 }
 
-void CChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
+void ChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
 {
     utils3d::AABBox treeArea;
     if (root) {
         treeArea = root->node.boundaries;
     }
 
-    for (int i = activeArea.minVec.x; i < activeArea.maxVec.x; i += CChunk::CHUNK_WIDTH) {
-        for (int j = activeArea.minVec.y; j < activeArea.maxVec.y; j += CChunk::CHUNK_HEIGHT) {
-            for (int k = activeArea.minVec.z; k < activeArea.maxVec.z; k += CChunk::CHUNK_DEPTH) {
-                utils3d::AABBox chunkBox(glm::vec3(i, j, k), glm::vec3(i+CChunk::CHUNK_WIDTH, j+(int)CChunk::CHUNK_HEIGHT, k+CChunk::CHUNK_DEPTH));
+    for (int i = activeArea.minVec.x; i < activeArea.maxVec.x; i += Chunk::CHUNK_WIDTH) {
+        for (int j = activeArea.minVec.y; j < activeArea.maxVec.y; j += Chunk::CHUNK_HEIGHT) {
+            for (int k = activeArea.minVec.z; k < activeArea.maxVec.z; k += Chunk::CHUNK_DEPTH) {
+                utils3d::AABBox chunkBox(glm::vec3(i, j, k), glm::vec3(i+Chunk::CHUNK_WIDTH, j+(int)Chunk::CHUNK_HEIGHT, k+Chunk::CHUNK_DEPTH));
                 if (!utils3d::AABBcollision(chunkBox, treeArea) || getChunk(chunkBox.minVec, ALL) == nullptr) {
                     addChunk(chunkBox.minVec);
                 }
@@ -82,17 +82,17 @@ void CChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
     }
 }
 
-void CChunkTree::eraseOldChunks(const utils3d::AABBox& activeArea)
+void ChunkTree::eraseOldChunks(const utils3d::AABBox& activeArea)
 {
     utils3d::AABBox treeArea;
     if (root) {
         treeArea = root->node.boundaries;
     }
 
-    for (int i = treeArea.minVec.x; i < treeArea.maxVec.x; i += CChunk::CHUNK_WIDTH) {
-        for (int j = treeArea.minVec.y; j < treeArea.maxVec.y; j += CChunk::CHUNK_HEIGHT) {
-            for (int k = treeArea.minVec.z; k < treeArea.maxVec.z; k += CChunk::CHUNK_DEPTH) {
-                utils3d::AABBox chunkBox(glm::vec3(i, j, k), glm::vec3(i+CChunk::CHUNK_WIDTH, j+CChunk::CHUNK_HEIGHT, k+CChunk::CHUNK_DEPTH));
+    for (int i = treeArea.minVec.x; i < treeArea.maxVec.x; i += Chunk::CHUNK_WIDTH) {
+        for (int j = treeArea.minVec.y; j < treeArea.maxVec.y; j += Chunk::CHUNK_HEIGHT) {
+            for (int k = treeArea.minVec.z; k < treeArea.maxVec.z; k += Chunk::CHUNK_DEPTH) {
+                utils3d::AABBox chunkBox(glm::vec3(i, j, k), glm::vec3(i+Chunk::CHUNK_WIDTH, j+Chunk::CHUNK_HEIGHT, k+Chunk::CHUNK_DEPTH));
                 if (!utils3d::AABBcollision(chunkBox, activeArea)) {
                     remChunk(chunkBox.minVec);
                 }
@@ -101,7 +101,7 @@ void CChunkTree::eraseOldChunks(const utils3d::AABBox& activeArea)
     }
 }
 
-void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf)
+void ChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeafNode* leaf)
 {
     glm::vec3 nodeCenter = node->node.center;
     int indX, indY, indZ;
@@ -123,7 +123,7 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
     }
 
     node->node.boundaries.addPoint(position);
-    node->node.boundaries.addPoint(position + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+    node->node.boundaries.addPoint(position + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
 
     if (node->node.subdivisions[indX][indY][indZ] == nullptr) {
         if (leaf != nullptr) {
@@ -131,7 +131,7 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
         } else {
             TreeLeafNode *newNode = new TreeLeafNode;
             newNode->isLeaf = true;
-            newNode->leaf.chunk = new CChunk(position);
+            newNode->leaf.chunk = new Chunk(position);
             node->node.subdivisions[indX][indY][indZ] = newNode;
 
             std::lock_guard<std::mutex> lck(initedBeingModified);
@@ -155,7 +155,7 @@ void CChunkTree::addLeaf(TreeLeafNode* node, const glm::vec3& position, TreeLeaf
     }
 }
 
-void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
+void ChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
 {
     glm::vec3 nodeCenter = node->node.center;
     int indX, indY, indZ;
@@ -211,7 +211,7 @@ void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
                         node->node.boundaries.addPoint(chunkPos);
-                        node->node.boundaries.addPoint(chunkPos + glm::vec3((int)CChunk::CHUNK_WIDTH, (int)CChunk::CHUNK_HEIGHT, (int)CChunk::CHUNK_DEPTH));
+                        node->node.boundaries.addPoint(chunkPos + glm::vec3((int)Chunk::CHUNK_WIDTH, (int)Chunk::CHUNK_HEIGHT, (int)Chunk::CHUNK_DEPTH));
                     } else {
                         node->node.boundaries.addPoint(node->node.subdivisions[i][j][k]->node.boundaries.minVec);
                         node->node.boundaries.addPoint(node->node.subdivisions[i][j][k]->node.boundaries.maxVec);
@@ -222,7 +222,7 @@ void CChunkTree::remLeaf(TreeLeafNode* node, const glm::vec3& position)
     }
 }
 
-void CChunkTree::deleteAll(TreeLeafNode* node)
+void ChunkTree::deleteAll(TreeLeafNode* node)
 {
     if (node) {
         if (node->isLeaf) {
@@ -241,7 +241,7 @@ void CChunkTree::deleteAll(TreeLeafNode* node)
     }
 }
 
-CChunkTree::TreeLeafNode* CChunkTree::getLeaf(TreeLeafNode* node, const glm::vec3& pos, EChunkFlags flags) const
+ChunkTree::TreeLeafNode* ChunkTree::getLeaf(TreeLeafNode* node, const glm::vec3& pos, EChunkFlags flags) const
 {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -249,16 +249,16 @@ CChunkTree::TreeLeafNode* CChunkTree::getLeaf(TreeLeafNode* node, const glm::vec
                 if (node->node.subdivisions[i][j][k]) {
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         if (node->node.subdivisions[i][j][k]->leaf.chunk->getPosition() == pos) {
-                            CChunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
+                            Chunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
                             bool flagsPass;
                             bool isInited = temp->isStateInitialized();
-                            flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
 
                             if (flagsPass) {
                                 return node->node.subdivisions[i][j][k];
@@ -266,7 +266,7 @@ CChunkTree::TreeLeafNode* CChunkTree::getLeaf(TreeLeafNode* node, const glm::vec
                         }
                     } else {
                         glm::vec3 temp(1.0f, 1.0f, 1.0f);
-                        utils3d::AABBox box(pos + temp, pos - temp + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        utils3d::AABBox box(pos + temp, pos - temp + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
                         if (utils3d::AABBcollision(box, node->node.subdivisions[i][j][k]->node.boundaries)) {
                             return getLeaf(node->node.subdivisions[i][j][k], pos, flags);
                         }
@@ -278,7 +278,7 @@ CChunkTree::TreeLeafNode* CChunkTree::getLeaf(TreeLeafNode* node, const glm::vec
     return nullptr;
 }
 
-void CChunkTree::getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::AABBox& area, EChunkFlags flags) const
+void ChunkTree::getLeafArea(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::AABBox& area, EChunkFlags flags) const
 {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -286,18 +286,18 @@ void CChunkTree::getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, c
                 if (node->node.subdivisions[i][j][k]) {
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
-                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
                         if (utils3d::AABBcollision(area, box)) {
-                            CChunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
+                            Chunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
                             bool flagsPass;
                             bool isInited = temp->isStateInitialized();
-                            flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -314,7 +314,7 @@ void CChunkTree::getLeafArea(TreeLeafNode* node, std::vector<CChunk*>& output, c
     }
 }
 
-void CChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const
+void ChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const
 {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -322,18 +322,18 @@ void CChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& 
                 if (node->node.subdivisions[i][j][k]) {
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
-                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
                         if (utils3d::RayAABBcollision(rayPos, rayDir_inverted, box)) {
-                            CChunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
+                            Chunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
                             bool flagsPass;
                             bool isInited = temp->isStateInitialized();
-                            flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -350,7 +350,7 @@ void CChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<CChunk*>& 
     }
 }
 
-void CChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const
+void ChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const
 {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -358,18 +358,18 @@ void CChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<CChunk*>& outpu
                 if (node->node.subdivisions[i][j][k]) {
                     if (node->node.subdivisions[i][j][k]->isLeaf) {
                         glm::vec3 chunkPos = node->node.subdivisions[i][j][k]->leaf.chunk->getPosition();
-                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)CChunk::CHUNK_WIDTH, (float)CChunk::CHUNK_HEIGHT, (float)CChunk::CHUNK_DEPTH));
+                        utils3d::AABBox box(chunkPos, chunkPos + glm::vec3((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH));
                         if (utils3d::FrustumAABBcollision(frustum, box)) {
-                            CChunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
+                            Chunk* temp = node->node.subdivisions[i][j][k]->leaf.chunk;
                             bool flagsPass;
                             bool isInited = temp->isStateInitialized();
-                            flagsPass = ((flags & CChunkTree::UNINITIALIZED) && !isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
-                            flagsPass = flagsPass || ((flags & CChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);

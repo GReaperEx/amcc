@@ -1,4 +1,4 @@
-#include "CShaderManager.h"
+#include "ShaderManager.h"
 
 #include <cassert>
 #include <iostream>
@@ -7,14 +7,14 @@
 
 using namespace std;
 
-CShaderManager::~CShaderManager()
+ShaderManager::~ShaderManager()
 {
     for (auto shader : loadedShaders) {
         glDeleteProgram(shader.second);
     }
 }
 
-bool CShaderManager::addShader(const std::string& name, const std::string& vert_path, const std::string& frag_path)
+bool ShaderManager::addShader(const std::string& name, const std::string& vert_path, const std::string& frag_path)
 {
     remShader(name);
 
@@ -27,7 +27,7 @@ bool CShaderManager::addShader(const std::string& name, const std::string& vert_
     return true;
 }
 
-void CShaderManager::remShader(const std::string& name)
+void ShaderManager::remShader(const std::string& name)
 {
     auto shader = loadedShaders.find(name);
 
@@ -42,7 +42,7 @@ void CShaderManager::remShader(const std::string& name)
     }
 }
 
-bool CShaderManager::use(const std::string& shaderName)
+bool ShaderManager::use(const std::string& shaderName)
 {
     auto shader = loadedShaders.find(shaderName);
     if (shader == loadedShaders.end()) {
@@ -60,7 +60,7 @@ bool CShaderManager::use(const std::string& shaderName)
     return true;
 }
 
-GLuint CShaderManager::getUniformLocation(const std::string& name)
+GLuint ShaderManager::getUniformLocation(const std::string& name)
 {
     GLuint location = 0;
 
@@ -75,7 +75,7 @@ GLuint CShaderManager::getUniformLocation(const std::string& name)
     return location;
 }
 
-GLuint CShaderManager::load(const std::string& vert_path, const std::string& frag_path)
+GLuint ShaderManager::load(const std::string& vert_path, const std::string& frag_path)
 {
 	// Create the shaders
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);

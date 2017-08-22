@@ -1,9 +1,9 @@
-#include "CChunk.h"
+#include "Chunk.h"
 
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-void CChunk::genBlocks(const CBiomeManager& biomeManager, const CBlockInfo& blocks, const std::vector<CNoiseGenerator>& noiseGens, CChunk* adjacent[6])
+void Chunk::genBlocks(const BiomeManager& biomeManager, const BlockInfo& blocks, const std::vector<NoiseGenerator>& noiseGens, Chunk* adjacent[6])
 {
     // What should the smoothing distance be? That is the question.
     // 1 : 3x3
@@ -63,7 +63,7 @@ void CChunk::genBlocks(const CBiomeManager& biomeManager, const CBlockInfo& bloc
     }
 }
 
-void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
+void Chunk::genMesh(const BlockInfo& blocks, Chunk* adjacent[6])
 {
     vertices.clear();
     uvs.clear();
@@ -84,9 +84,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i+1, k, j+1));
                     vertices.push_back(glm::vec3(i+1, k, j));
                     vertices.push_back(glm::vec3(i+1, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][1]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][2]);
                     normals.push_back(glm::vec3(1, 0, 0));
                     normals.push_back(glm::vec3(1, 0, 0));
                     normals.push_back(glm::vec3(1, 0, 0));
@@ -94,9 +94,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i+1, k, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j));
                     vertices.push_back(glm::vec3(i+1, k+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::RIGHT][3]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::RIGHT][3]);
                     normals.push_back(glm::vec3(1, 0, 0));
                     normals.push_back(glm::vec3(1, 0, 0));
                     normals.push_back(glm::vec3(1, 0, 0));
@@ -107,9 +107,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j));
                     vertices.push_back(glm::vec3(i, k, j+1));
                     vertices.push_back(glm::vec3(i, k+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][1]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][2]);
                     normals.push_back(glm::vec3(-1, 0, 0));
                     normals.push_back(glm::vec3(-1, 0, 0));
                     normals.push_back(glm::vec3(-1, 0, 0));
@@ -117,9 +117,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j));
                     vertices.push_back(glm::vec3(i, k+1, j+1));
                     vertices.push_back(glm::vec3(i, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::LEFT][3]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::LEFT][3]);
                     normals.push_back(glm::vec3(-1, 0, 0));
                     normals.push_back(glm::vec3(-1, 0, 0));
                     normals.push_back(glm::vec3(-1, 0, 0));
@@ -130,9 +130,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k+1, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][2]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][0]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][1]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][2]);
                     normals.push_back(glm::vec3(0, 1, 0));
                     normals.push_back(glm::vec3(0, 1, 0));
                     normals.push_back(glm::vec3(0, 1, 0));
@@ -140,9 +140,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k+1, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j));
                     vertices.push_back(glm::vec3(i, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::TOP][3]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][0]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][2]);
+                    uvs.push_back(blockUVs[BlockInfo::TOP][3]);
                     normals.push_back(glm::vec3(0, 1, 0));
                     normals.push_back(glm::vec3(0, 1, 0));
                     normals.push_back(glm::vec3(0, 1, 0));
@@ -153,9 +153,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j));
                     vertices.push_back(glm::vec3(i+1, k, j));
                     vertices.push_back(glm::vec3(i+1, k, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][2]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][0]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][1]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][2]);
                     normals.push_back(glm::vec3(0, -1, 0));
                     normals.push_back(glm::vec3(0, -1, 0));
                     normals.push_back(glm::vec3(0, -1, 0));
@@ -163,9 +163,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j));
                     vertices.push_back(glm::vec3(i+1, k, j+1));
                     vertices.push_back(glm::vec3(i, k, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::BOTTOM][3]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][0]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][2]);
+                    uvs.push_back(blockUVs[BlockInfo::BOTTOM][3]);
                     normals.push_back(glm::vec3(0, -1, 0));
                     normals.push_back(glm::vec3(0, -1, 0));
                     normals.push_back(glm::vec3(0, -1, 0));
@@ -176,9 +176,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j+1));
                     vertices.push_back(glm::vec3(i+1, k, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][2]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][0]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][1]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][2]);
                     normals.push_back(glm::vec3(0, 0, 1));
                     normals.push_back(glm::vec3(0, 0, 1));
                     normals.push_back(glm::vec3(0, 0, 1));
@@ -186,9 +186,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i, k, j+1));
                     vertices.push_back(glm::vec3(i+1, k+1, j+1));
                     vertices.push_back(glm::vec3(i, k+1, j+1));
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::BACK][3]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][0]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][2]);
+                    uvs.push_back(blockUVs[BlockInfo::BACK][3]);
                     normals.push_back(glm::vec3(0, 0, 1));
                     normals.push_back(glm::vec3(0, 0, 1));
                     normals.push_back(glm::vec3(0, 0, 1));
@@ -199,9 +199,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i+1, k, j));
                     vertices.push_back(glm::vec3(i, k, j));
                     vertices.push_back(glm::vec3(i, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][1]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][1]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][2]);
                     normals.push_back(glm::vec3(0, 0, -1));
                     normals.push_back(glm::vec3(0, 0, -1));
                     normals.push_back(glm::vec3(0, 0, -1));
@@ -209,9 +209,9 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
                     vertices.push_back(glm::vec3(i+1, k, j));
                     vertices.push_back(glm::vec3(i, k+1, j));
                     vertices.push_back(glm::vec3(i+1, k+1, j));
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][0]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][2]);
-                    uvs.push_back(blockUVs[CBlockInfo::FRONT][3]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][0]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][2]);
+                    uvs.push_back(blockUVs[BlockInfo::FRONT][3]);
                     normals.push_back(glm::vec3(0, 0, -1));
                     normals.push_back(glm::vec3(0, 0, -1));
                     normals.push_back(glm::vec3(0, 0, -1));
@@ -224,11 +224,11 @@ void CChunk::genMesh(const CBlockInfo& blocks, CChunk* adjacent[6])
     neededStateUpdate = true;
 }
 
-void CChunk::update(float dT)
+void Chunk::update(float dT)
 {
 }
 
-void CChunk::render()
+void Chunk::render()
 {
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[0]);
@@ -247,7 +247,7 @@ void CChunk::render()
     glDisableVertexAttribArray(0);
 }
 
-void CChunk::replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6])
+void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6])
 {
     int localX = (int)(newBlock.position.x - position.x);
     int localY = (int)(newBlock.position.y - position.y);
@@ -279,8 +279,8 @@ void CChunk::replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6])
     }
 }
 
-bool CChunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
-                             const glm::vec3& rayDir, const CBlockInfo& blockInfo, bool ignoreAir)
+bool Chunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
+                             const glm::vec3& rayDir, const BlockInfo& blockInfo, bool ignoreAir)
 {
     glm::vec3 chunkBoxMin = position;
     glm::vec3 chunkBoxMax = position + glm::vec3((float)CHUNK_WIDTH, (float)CHUNK_HEIGHT, (float)CHUNK_DEPTH);
@@ -295,7 +295,7 @@ bool CChunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin
     return false;
 }
 
-bool CChunk::rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin, const glm::vec3& boxMax,
+bool Chunk::rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin, const glm::vec3& boxMax,
                                   const glm::vec3& rayPos, const glm::vec3& rayDir,
                                   const glm::vec3& rayDir_inverted, bool ignoreAir)
 {
@@ -338,7 +338,7 @@ bool CChunk::rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin,
     return false;
 }
 
-bool CChunk::rayBoxIntersection(const glm::vec3& boxMin, const glm::vec3& boxMax,
+bool Chunk::rayBoxIntersection(const glm::vec3& boxMin, const glm::vec3& boxMax,
                                 const glm::vec3& rayPos, const glm::vec3& rayDir_inverted)
 {
     using glm::min;

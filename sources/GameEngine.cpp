@@ -98,8 +98,8 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     lastUpdate = SDL_GetTicks();
 
     // TODO: The seed given by the user should be passed instead
-    noiseGens.push_back(CNoiseGenerator(123));
-    noiseGens.push_back(CNoiseGenerator(123*2));
+    noiseGens.push_back(NoiseGenerator(123));
+    noiseGens.push_back(NoiseGenerator(123*2));
 
     chunkManager.init(textureManager, noiseGens, &camera);
 }
@@ -129,7 +129,7 @@ bool CGameEngine::handleEvent(const SDL_Event& event)
         break;
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                CChunk::BlockDetails lookBlock;
+                Chunk::BlockDetails lookBlock;
                 if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
                     lookBlock.id = 0;
                     chunkManager.replaceBlock(lookBlock);

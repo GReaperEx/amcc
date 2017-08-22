@@ -1,5 +1,5 @@
-#ifndef C_CHUNK_H
-#define C_CHUNK_H
+#ifndef CHUNK_H
+#define CHUNK_H
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -7,11 +7,11 @@
 #include <vector>
 #include <atomic>
 
-#include "CBlockInfo.h"
-#include "CNoiseGenerator.h"
-#include "CBiomeManager.h"
+#include "BlockInfo.h"
+#include "NoiseGenerator.h"
+#include "BiomeManager.h"
 
-class CChunk
+class Chunk
 {
 public:
     struct BlockDetails
@@ -32,7 +32,7 @@ public:
     static const int CHUNK_HEIGHT = 256;
 
 public:
-    CChunk(const glm::vec3& gPos) {
+    Chunk(const glm::vec3& gPos) {
         position = gPos;
         memset(chunkData, 0, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
@@ -42,7 +42,7 @@ public:
         neededMeshUpdate = false;
         neededStateUpdate = false;
     }
-    CChunk(const glm::vec3& gPos, const SBlock *bakedData) {
+    Chunk(const glm::vec3& gPos, const SBlock *bakedData) {
         position = gPos;
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
@@ -52,7 +52,7 @@ public:
         neededMeshUpdate = true;
         neededStateUpdate = false;
     }
-    ~CChunk() {
+    ~Chunk() {
         glDeleteBuffers(3, bufferIDs);
     }
 
@@ -70,8 +70,8 @@ public:
         neededMeshUpdate = true;
     }
 
-    void genBlocks(const CBiomeManager& biomeManager, const CBlockInfo& blocks, const std::vector<CNoiseGenerator>& noiseGen, CChunk* adjacent[6]);
-    void genMesh(const CBlockInfo& blocks, CChunk* adjacent[6]); // Just generates data, doesn't call OpenGL
+    void genBlocks(const BiomeManager& biomeManager, const BlockInfo& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6]);
+    void genMesh(const BlockInfo& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();
 
@@ -94,9 +94,9 @@ public:
         return position;
     }
 
-    void replaceBlock(const BlockDetails& newBlock, CChunk *adjacent[6]);
+    void replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6]);
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                        const CBlockInfo& blockInfo, bool ignoreAir = true);
+                        const BlockInfo& blockInfo, bool ignoreAir = true);
 
     bool isStateInitialized() const {
         return isStateInited;
@@ -142,4 +142,4 @@ private:
                             const glm::vec3& rayPos, const glm::vec3& rayDir_inverted);
 };
 
-#endif // C_CHUNK_H
+#endif // CHUNK_H

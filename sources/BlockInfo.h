@@ -7,13 +7,13 @@
 
 #include <glm/glm.hpp>
 
-class CBlockInfo
+class BlockInfo
 {
 public:
     enum EBlockSide { RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT };
 
 public:
-    CBlockInfo() {
+    BlockInfo() {
         SBlock temp;
         temp.name = "air";
         blockInfoMap[0] = temp;

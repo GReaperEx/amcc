@@ -1,9 +1,9 @@
-#include "CBiome.h"
-#include "CChunk.h"
+#include "Biome.h"
+#include "Chunk.h"
 
 void fatalError(const std::string& prefix, const std::string& message);
 
-CBiome::CBiome(std::ifstream& infile, const std::string& name)
+Biome::Biome(std::ifstream& infile, const std::string& name)
 {
     this->name = name;
 
@@ -59,16 +59,16 @@ CBiome::CBiome(std::ifstream& infile, const std::string& name)
     });
 }
 
-void CBiome::genChunkColumn(void *column, const CBlockInfo& blockInfo, int surfaceHeight) const
+void Biome::genChunkColumn(void *column, const BlockInfo& blockInfo, int surfaceHeight) const
 {
     auto it = layers.begin();
-    CChunk::SBlock curBlock{ 0, 0 };
+    Chunk::SBlock curBlock{ 0, 0 };
     curBlock.id = blockInfo.getBlockID(it->blockName);
 
     for (int i = surfaceHeight; i >= 0; --i) {
         while (it->maxDepth < (surfaceHeight - i)) {
             curBlock.id = blockInfo.getBlockID((++it)->blockName);
         }
-        ((CChunk::SBlock*)column)[i] = curBlock;
+        ((Chunk::SBlock*)column)[i] = curBlock;
     }
 }

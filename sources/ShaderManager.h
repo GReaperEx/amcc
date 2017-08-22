@@ -1,5 +1,5 @@
-#ifndef CSHADER_MANAGER_H
-#define CSHADER_MANAGER_H
+#ifndef SHADER_MANAGER_H
+#define SHADER_MANAGER_H
 
 #include <string>
 #include <GL/glew.h>
@@ -7,11 +7,11 @@
 
 #include <map>
 
-class CShaderManager
+class ShaderManager
 {
 public:
-    CShaderManager() { currentShader = 0; }
-    ~CShaderManager();
+    ShaderManager() { currentShader = 0; }
+    ~ShaderManager();
 
     bool addShader(const std::string& name, const std::string& vert_path, const std::string& frag_path);
     void remShader(const std::string& name);
@@ -27,4 +27,4 @@ private:
     std::map<std::string, GLuint> fetchedUniforms;
 };
 
-#endif // CSHADER_MANAGER_H
+#endif // SHADER_MANAGER_H

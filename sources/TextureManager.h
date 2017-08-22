@@ -1,26 +1,26 @@
-#ifndef C_TEXTURE_MANAGER_H
-#define C_TEXTURE_MANAGER_H
+#ifndef TEXTURE_MANAGER_H
+#define TEXTURE_MANAGER_H
 
 #include <map>
 #include <string>
 
-#include "CTexture.h"
+#include "Texture.h"
 
-class CTextureManager
+class TextureManager
 {
 public:
-    CTextureManager() {}
-    ~CTextureManager() {
+    TextureManager() {}
+    ~TextureManager() {
         for (auto it = textureMap.begin(); it != textureMap.end(); ++it) {
             it->second->drop();
         }
     }
 
-    void addTexture(const std::string& name, CTexture* texture) {
+    void addTexture(const std::string& name, Texture* texture) {
         textureMap[name] = texture;
     }
 
-    CTexture* getTexture(const std::string& path, bool genMipmaps = false,
+    Texture* getTexture(const std::string& path, bool genMipmaps = false,
                                             GLenum magFilter = GL_NEAREST,
                                             GLenum minFilter = GL_NEAREST,
                                             GLenum wrapS = GL_CLAMP_TO_EDGE,
@@ -31,7 +31,7 @@ public:
             return it->second;
         }
 
-        CTexture *newTexture = new CTexture(path, genMipmaps, magFilter, minFilter, wrapS, wrapT);
+        Texture *newTexture = new Texture(path, genMipmaps, magFilter, minFilter, wrapS, wrapT);
         textureMap[path] = newTexture;
 
         newTexture->grab();
@@ -47,7 +47,7 @@ public:
     }
 
 private:
-    std::map<std::string, CTexture*> textureMap;
+    std::map<std::string, Texture*> textureMap;
 };
 
-#endif // C_TEXTURE_MANAGER_H
+#endif // TEXTURE_MANAGER_H

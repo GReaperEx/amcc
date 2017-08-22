@@ -1,5 +1,5 @@
-#ifndef C_NOISE_GENERATOR
-#define C_NOISE_GENERATOR
+#ifndef NOISE_GENERATOR
+#define NOISE_GENERATOR
 
 #include <cmath>
 #include <random>
@@ -8,10 +8,10 @@
 
 // This class is almost a copy-paste of this one:
 // https://github.com/Reputeless/PerlinNoise/blob/master/PerlinNoise.hpp
-class CNoiseGenerator
+class NoiseGenerator
 {
 public:
-    explicit CNoiseGenerator(unsigned seed) {
+    explicit NoiseGenerator(unsigned seed) {
         reseed(seed);
     }
 
@@ -77,4 +77,4 @@ private:
     }
 };
 
-#endif // C_NOISE_GENERATOR
+#endif // NOISE_GENERATOR

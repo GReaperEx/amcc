@@ -1,6 +1,6 @@
-#include "CCamera.h"
+#include "Camera.h"
 
-bool CCamera::handleEvent(const SDL_Event& event)
+bool Camera::handleEvent(const SDL_Event& event)
 {
     switch (event.type)
     {
@@ -75,7 +75,7 @@ bool CCamera::handleEvent(const SDL_Event& event)
     return true;
 }
 
-void CCamera::update(float dT)
+void Camera::update(float dT)
 {
     glm::vec3 direction(0, 0, 0);
     if (keepMoving[0]) {

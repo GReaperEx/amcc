@@ -1,6 +1,6 @@
-#include "CBoxOutline.h"
+#include "BoxOutline.h"
 
-void CBoxOutline::init(const glm::vec3& color)
+void BoxOutline::init(const glm::vec3& color)
 {
     glm::vec3 vertices[12][2] = {
         { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f) },
@@ -23,7 +23,7 @@ void CBoxOutline::init(const glm::vec3& color)
     lineColor = color;
 }
 
-void CBoxOutline::render(CShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3& position)
+void BoxOutline::render(ShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3& position)
 {
     shaderManager.use("simple");
 
