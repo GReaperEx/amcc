@@ -18,7 +18,7 @@ public:
     }
 
     void loadBiomeInfo() {
-        std::ifstream infile("assets/biomes/biomes.cfg");
+        std::ifstream infile("assets/biomes.cfg");
         std::string biomeName;
 
         std::cout << "Parsing biome config file." << std::endl;
