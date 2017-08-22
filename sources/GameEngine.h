@@ -15,14 +15,14 @@
 #include "ChunkManager.h"
 #include "NoiseGenerator.h"
 
-class CGameEngine
+class GameEngine
 {
 public:
-    CGameEngine(const std::string& wndName, int wndWidth, int wndHeight, bool fullscreen) {
+    GameEngine(const std::string& wndName, int wndWidth, int wndHeight, bool fullscreen) {
         initState(wndName, wndWidth, wndHeight, fullscreen);
     }
 
-    ~CGameEngine() {
+    ~GameEngine() {
         clearState();
     }
 

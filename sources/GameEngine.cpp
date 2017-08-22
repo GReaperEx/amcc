@@ -1,11 +1,11 @@
-#include "CGameEngine.h"
+#include "GameEngine.h"
 
 #include <iostream>
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL_image.h>
 
-void CGameEngine::updateAll()
+void GameEngine::updateAll()
 {
     Uint32 curUpdate = SDL_GetTicks();
     float deltaT = (curUpdate - lastUpdate)/1000.0f ;
@@ -17,7 +17,7 @@ void CGameEngine::updateAll()
     lastUpdate = curUpdate;
 }
 
-void CGameEngine::renderAll()
+void GameEngine::renderAll()
 {
     // Calculating the view-projection matrix
     glm::mat4 v = camera.genViewMatrix();
@@ -35,7 +35,7 @@ void CGameEngine::renderAll()
 
 void fatalError(const std::string& prefix, const std::string& message);
 
-void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHeight, bool fullscreen)
+void GameEngine::initState(const std::string& wndName, int wndWidth, int wndHeight, bool fullscreen)
 {
     windowName = wndName;
     windowWidth = wndWidth;
@@ -104,7 +104,7 @@ void CGameEngine::initState(const std::string& wndName, int wndWidth, int wndHei
     chunkManager.init(textureManager, noiseGens, &camera);
 }
 
-void CGameEngine::clearState()
+void GameEngine::clearState()
 {
     glDeleteVertexArrays(1, &vtxArrayID);
     SDL_GL_DeleteContext(context);
@@ -112,7 +112,7 @@ void CGameEngine::clearState()
     SDL_Quit();
 }
 
-bool CGameEngine::handleEvent(const SDL_Event& event)
+bool GameEngine::handleEvent(const SDL_Event& event)
 {
     if (!cameraEnabled || !camera.handleEvent(event)) {
         switch (event.type)

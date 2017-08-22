@@ -3,13 +3,13 @@
 #include <string>
 #include <iostream>
 
-#include "CGameEngine.h"
+#include "GameEngine.h"
 #include "TextureManager.h"
 #include "ShaderManager.h"
 
 int main()
 {
-    CGameEngine myEngine("MyMC", 800, 600, false);
+    GameEngine myEngine("MyMC", 800, 600, false);
 
     while (myEngine.handleInput()) {
         myEngine.updateAll();

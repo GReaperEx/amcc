@@ -1,5 +1,5 @@
-#ifndef C_BLOCK_INFO_H
-#define C_BLOCK_INFO_H
+#ifndef BLOCK_INFO_H
+#define BLOCK_INFO_H
 
 #include <map>
 #include <string>
@@ -48,4 +48,4 @@ private:
     std::map<uint16_t, SBlock> blockInfoMap;
 };
 
-#endif // C_BLOCK_INFO_H
+#endif // BLOCK_INFO_H
