@@ -14,10 +14,19 @@ public:
 
     // @column: Should actually be CChunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
-    void genChunkColumn(void *column, int x, int z, const CBlockInfo& blockInfo, const CNoiseGenerator& noiseGen) const;
+    void genChunkColumn(void *column, const CBlockInfo& blockInfo, int surfaceHeight) const;
 
     bool hasDesiredOccurrence(float occurrence) const {
         return minOccurrence <= occurrence && occurrence < maxOccurrence;
+    }
+
+    int calcSurfaceHeight(int x, int z, const CNoiseGenerator& noiseGen) const {
+        float genNoise = calcNoise(x, z, genOctaves, noiseGen);
+        return (int)glm::clamp((int)(minHeight + genNoise), minHeight, maxHeight);
+    }
+
+    const std::string getName() const {
+        return name;
     }
 
 private:

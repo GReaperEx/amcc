@@ -5,11 +5,50 @@
 
 void CChunk::genBlocks(const CBiomeManager& biomeManager, const CBlockInfo& blocks, const std::vector<CNoiseGenerator>& noiseGens, CChunk* adjacent[6])
 {
+    // What should the smoothing distance be? That is the question.
+    // 1 : 3x3
+    // 2 : 5x5
+    // 3 : 7x7
+    // 4 : 9x9
+    // etc...
+    const int dist = 4;
 
     for (int i = 0; i < CHUNK_WIDTH; ++i) {
         for (int j = 0; j < CHUNK_DEPTH; ++j) {
+            // Smoothing the edges between biomes
+
             glm::vec3 localPos = position + glm::vec3(i, 0, j);
-            biomeManager.getBiome(noiseGens[0].noise(localPos.x*0.001f, 0.0f, localPos.z*0.001f)).genChunkColumn(chunkData[i][j], localPos.x, localPos.z, blocks, noiseGens[1]);
+            float biomeNoises[5] = {
+                noiseGens[0].noise((localPos.x-dist)*0.001f, 0.0f, (localPos.z-dist)*0.001f),
+                noiseGens[0].noise((localPos.x+dist)*0.001f, 0.0f, (localPos.z-dist)*0.001f),
+                noiseGens[0].noise((localPos.x+dist)*0.001f, 0.0f, (localPos.z+dist)*0.001f),
+                noiseGens[0].noise((localPos.x-dist)*0.001f, 0.0f, (localPos.z+dist)*0.001f),
+                noiseGens[0].noise(localPos.x*0.001f, 0.0f, localPos.z*0.001f),
+            };
+
+            int biomeAvg;
+
+            // Bailing early, checking only the edges
+            if (biomeManager.getBiome(biomeNoises[0]).getName() != biomeManager.getBiome(biomeNoises[1]).getName() ||
+                biomeManager.getBiome(biomeNoises[0]).getName() != biomeManager.getBiome(biomeNoises[2]).getName() ||
+                biomeManager.getBiome(biomeNoises[0]).getName() != biomeManager.getBiome(biomeNoises[3]).getName()) {
+
+                float heightSum = 0.0f;
+                for (int i2 = -dist; i2 <= dist; ++i2) {
+                    int lineSum = 0;
+                    for (int j2 = -dist; j2 <= dist; ++j2) {
+                        float curBiomeNoise = noiseGens[0].noise((localPos.x+i2)*0.001f, 0.0f, (localPos.z+j2)*0.001f);
+                        lineSum += biomeManager.getBiome(curBiomeNoise).calcSurfaceHeight(localPos.x+i2, localPos.z+j2, noiseGens[1]);
+                    }
+                    heightSum += lineSum/(float)(dist*2+1);
+                }
+
+                biomeAvg = (int)(heightSum/(dist*2+1));
+            } else {
+                biomeAvg = biomeManager.getBiome(biomeNoises[4]).calcSurfaceHeight(localPos.x, localPos.z, noiseGens[1]);
+            }
+
+            biomeManager.getBiome(biomeNoises[4]).genChunkColumn(chunkData[i][j], blocks, biomeAvg);
         }
     }
 

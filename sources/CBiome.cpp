@@ -59,17 +59,14 @@ CBiome::CBiome(std::ifstream& infile, const std::string& name)
     });
 }
 
-void CBiome::genChunkColumn(void *column, int x, int z, const CBlockInfo& blockInfo, const CNoiseGenerator& noiseGen) const
+void CBiome::genChunkColumn(void *column, const CBlockInfo& blockInfo, int surfaceHeight) const
 {
     auto it = layers.begin();
     CChunk::SBlock curBlock{ 0, 0 };
     curBlock.id = blockInfo.getBlockID(it->blockName);
 
-    float genNoise = calcNoise(x, z, genOctaves, noiseGen);
-    int curHeight = (int)glm::clamp((int)(minHeight + genNoise), minHeight, maxHeight);
-
-    for (int i = curHeight; i >= 0; --i) {
-        while (it->maxDepth < (curHeight - i)) {
+    for (int i = surfaceHeight; i >= 0; --i) {
+        while (it->maxDepth < (surfaceHeight - i)) {
             curBlock.id = blockInfo.getBlockID((++it)->blockName);
         }
         ((CChunk::SBlock*)column)[i] = curBlock;
