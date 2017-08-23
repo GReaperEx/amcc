@@ -89,8 +89,10 @@ private:
         float baseNoise = noiseGen.noise((x + genStruct.offset)*genStruct.frequency, 0.0f, (z + genStruct.offset)*genStruct.frequency);
         for (int i = -1; i <= 1; ++i) {
             for (int j = -1; j <= 1; ++j) {
-                if (baseNoise < noiseGen.noise((x + i + genStruct.offset)*genStruct.frequency, 0.0f, (z + j + genStruct.offset)*genStruct.frequency)) {
-                    return false;
+                if (i != 0 || j != 0) {
+                    if (baseNoise <= noiseGen.noise((x + i + genStruct.offset)*genStruct.frequency, 0.0f, (z + j + genStruct.offset)*genStruct.frequency)) {
+                        return false;
+                    }
                 }
             }
         }

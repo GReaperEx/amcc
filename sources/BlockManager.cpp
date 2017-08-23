@@ -30,6 +30,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
         std::string front;
 
         Block::Shape shape;
+        bool isTransparent;
         uint16_t id;
     };
     std::map<std::string, blockTiles> tileMap;
@@ -48,7 +49,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
 
             tileMap[name].shape = Block::Shape::CUBE;
             if (side == "all") {
-                tileMap[name] = blockTiles{fileName, fileName, fileName, fileName, fileName, fileName, Block::Shape::CUBE, tileMap[name].id};
+                tileMap[name] = blockTiles{fileName, fileName, fileName, fileName, fileName, fileName, Block::Shape::CUBE, false, tileMap[name].id};
             } else if (side == "right") {
                 tileMap[name].right = fileName;
             } else if (side == "left") {
@@ -66,6 +67,12 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
                     tileMap[name].shape = Block::Shape::CUBE;
                 } else if (fileName == "fake3d") {
                     tileMap[name].shape = Block::Shape::FAKE3D;
+                }
+            } else if (side == "isTransparent") {
+                if (fileName == "true") {
+                    tileMap[name].isTransparent = true;
+                } else {
+                    tileMap[name].isTransparent = false;
                 }
             }
         }
@@ -127,7 +134,8 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
 
     cout << "Generating block atlas." << endl;
     int dims = glm::pow(2.0f, glm::ceil(glm::log2(glm::sqrt((float)images.size()))))*16;
-    SDL_Surface *atlas = SDL_CreateRGBSurface(0, dims, dims, 32, 0, 0, 0, 0xFF);
+    SDL_Surface *atlas = SDL_CreateRGBSurface(0, dims, dims, 32, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
+    SDL_FillRect(atlas, nullptr, SDL_MapRGBA(atlas->format, 0, 0, 0, 0));
 
     SDL_Rect curPos;
     curPos.w = curPos.h = 16;
@@ -162,7 +170,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
         memcpy(uvCoords[3], imageUVs[it->second.bottom].UVs, 4*sizeof(glm::vec2));
         memcpy(uvCoords[4], imageUVs[it->second.back].UVs, 4*sizeof(glm::vec2));
         memcpy(uvCoords[5], imageUVs[it->second.front].UVs, 4*sizeof(glm::vec2));
-        blocks.push_back(Block(it->second.id, it->first, it->second.shape, uvCoords, it->second.shape == Block::Shape::FAKE3D));
+        blocks.push_back(Block(it->second.id, it->first, it->second.shape, uvCoords, it->second.isTransparent || it->second.shape == Block::Shape::FAKE3D));
     }
 
     std::sort(blocks.begin(), blocks.end());
