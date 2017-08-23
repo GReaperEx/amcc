@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "Biome.h"
-#include "BlockInfo.h"
+#include "BlockManager.h"
 #include "NoiseGenerator.h"
 
 class BiomeManager

@@ -12,7 +12,7 @@ void ChunkManager::init(TextureManager& textureManager, const std::vector<NoiseG
     this->noiseGens = noiseGens;
     this->camera = camera;
 
-    loadBlockInfo(textureManager);
+    blockAtlas = blockManager.loadBlockInfo(textureManager);
     biomeManager.loadBiomeInfo();
 
     boxOutline.init(glm::vec3(0, 0, 0));
@@ -77,7 +77,7 @@ bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,
     chunkTree.getIntersectingChunks(fetchedChunks, rayOrigin, rayDir_inverted);
 
     for (Chunk* curChunk : fetchedChunks) {
-        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockInfo, ignoreAir)) {
+        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockManager, ignoreAir)) {
             glm::vec3 distVec1 = closest.position - rayOrigin;
             glm::vec3 distVec2 = lookBlock.position - rayOrigin;
             if (glm::dot(distVec2, distVec2) < glm::dot(distVec1, distVec1)) {
@@ -125,7 +125,7 @@ void ChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genBlocks(biomeManager, blockInfo, noiseGens, chunkArea);
+            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea);
 
             if (!keepRunning) {
                 return;
@@ -160,7 +160,7 @@ void ChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genBlocks(biomeManager, blockInfo, noiseGens, chunkArea);
+            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea);
 
             if (!keepRunning) {
                 return;
@@ -203,7 +203,7 @@ void ChunkManager::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(blockInfo, chunkArea);
+            curChunk->genMesh(blockManager, chunkArea);
 
             if (userRequest) {
                 break;
@@ -240,7 +240,7 @@ void ChunkManager::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(blockInfo, chunkArea);
+            curChunk->genMesh(blockManager, chunkArea);
 
             if (userRequest) {
                 break;
@@ -277,158 +277,4 @@ void ChunkManager::initfreeThreadFunc()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-}
-
-void fatalError(const std::string& prefix, const std::string& msg);
-
-void ChunkManager::loadBlockInfo(TextureManager& textureManager)
-{
-    using std::cout;
-    using std::endl;
-
-    const std::string rootDir = "assets/blocks/";
-
-    std::ifstream infile(rootDir + "blocks.cfg");
-    if (!infile.is_open()) {
-        fatalError("ChunkManager_Error: ", "Unable to open block config file.");
-    }
-
-    struct blockTiles
-    {
-        std::string right;
-        std::string left;
-        std::string top;
-        std::string bottom;
-        std::string back;
-        std::string front;
-
-        uint16_t id;
-    };
-    std::map<std::string, blockTiles> tileMap;
-    cout << "Parsing block config file." << endl;
-    std::string name;
-
-    int IDs = 1;
-    while (infile >> name) {
-        infile.ignore(100, '{');
-        tileMap[name].id = IDs++;
-
-        std::string side;
-        while (infile >> side && side != "}") {
-            std::string fileName;
-            infile >> fileName;
-
-            if (side == "all") {
-                tileMap[name] = blockTiles{fileName, fileName, fileName, fileName, fileName, fileName, tileMap[name].id};
-            } else if (side == "right") {
-                tileMap[name].right = fileName;
-            } else if (side == "left") {
-                tileMap[name].left = fileName;
-            } else if (side == "top") {
-                tileMap[name].top = fileName;
-            } else if (side == "bottom") {
-                tileMap[name].bottom = fileName;
-            } else if (side == "back") {
-                tileMap[name].back = fileName;
-            } else if (side == "front") {
-                tileMap[name].front = fileName;
-            }
-        }
-    }
-    infile.close();
-
-    cout << "Loading block tiles." << endl;
-    std::map<std::string, SDL_Surface*> images;
-    for (auto it = tileMap.begin(); it != tileMap.end(); ++it) {
-        if (images.find(it->second.right) == images.end()) {
-            auto name = it->second.right;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-        if (images.find(it->second.left) == images.end()) {
-            auto name = it->second.left;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-        if (images.find(it->second.top) == images.end()) {
-            auto name = it->second.top;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-        if (images.find(it->second.bottom) == images.end()) {
-            auto name = it->second.bottom;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-        if (images.find(it->second.back) == images.end()) {
-            auto name = it->second.back;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-        if (images.find(it->second.front) == images.end()) {
-            auto name = it->second.front;
-            images[name] = IMG_Load((rootDir + name).c_str());
-            if (images[name] == nullptr) {
-                fatalError("Program_Load: ", "Failed to load \'" + (rootDir + name) + "\'.\n" +
-                           "IMG_Load: " + IMG_GetError());
-            }
-        }
-    }
-
-    cout << "Generating block atlas." << endl;
-    int dims = glm::pow(2.0f, glm::ceil(glm::log2(glm::sqrt((float)images.size()))))*16;
-    SDL_Surface *atlas = SDL_CreateRGBSurface(0, dims, dims, 32, 0, 0, 0, 0);
-
-    SDL_Rect curPos;
-    curPos.w = curPos.h = 16;
-    curPos.x = curPos.y = 0;
-    struct tileUVs
-    {
-        glm::vec2 UVs[4];
-    };
-    std::map<std::string, tileUVs> imageUVs;
-    for (auto it = images.begin(); it != images.end(); ++it) {
-        SDL_BlitSurface(it->second, nullptr, atlas, &curPos);
-        imageUVs[it->first].UVs[0] = glm::vec2(curPos.x/(float)dims, 1.0f - (curPos.y+16)/(float)dims);
-        imageUVs[it->first].UVs[1] = glm::vec2((curPos.x+16)/(float)dims, 1.0f - (curPos.y+16)/(float)dims);
-        imageUVs[it->first].UVs[2] = glm::vec2((curPos.x+16)/(float)dims, 1.0f - curPos.y/(float)dims);
-        imageUVs[it->first].UVs[3] = glm::vec2(curPos.x/(float)dims, 1.0f - curPos.y/(float)dims);
-
-        curPos.x += 16;
-        if (curPos.x == dims) {
-            curPos.x = 0;
-            curPos.y += 16;
-        }
-        SDL_FreeSurface(it->second);
-    }
-    textureManager.addTexture("blockAtlas", new Texture(atlas));
-    SDL_FreeSurface(atlas);
-
-    for (auto it = tileMap.begin(); it != tileMap.end(); ++it) {
-        glm::vec2 uvCoords[6][4];
-        memcpy(uvCoords[0], imageUVs[it->second.right].UVs, 4*sizeof(glm::vec2));
-        memcpy(uvCoords[1], imageUVs[it->second.left].UVs, 4*sizeof(glm::vec2));
-        memcpy(uvCoords[2], imageUVs[it->second.top].UVs, 4*sizeof(glm::vec2));
-        memcpy(uvCoords[3], imageUVs[it->second.bottom].UVs, 4*sizeof(glm::vec2));
-        memcpy(uvCoords[4], imageUVs[it->second.back].UVs, 4*sizeof(glm::vec2));
-        memcpy(uvCoords[5], imageUVs[it->second.front].UVs, 4*sizeof(glm::vec2));
-        blockInfo.addBlock(it->first, it->second.id, uvCoords);
-    }
-
-    blockAtlas = textureManager.getTexture("blockAtlas");
 }

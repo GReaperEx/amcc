@@ -48,7 +48,10 @@
 		<Unit filename="sources/Biome.cpp" />
 		<Unit filename="sources/Biome.h" />
 		<Unit filename="sources/BiomeManager.h" />
-		<Unit filename="sources/BlockInfo.h" />
+		<Unit filename="sources/Block.cpp" />
+		<Unit filename="sources/Block.h" />
+		<Unit filename="sources/BlockManager.cpp" />
+		<Unit filename="sources/BlockManager.h" />
 		<Unit filename="sources/BoxOutline.cpp" />
 		<Unit filename="sources/BoxOutline.h" />
 		<Unit filename="sources/Camera.cpp" />

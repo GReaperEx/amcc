@@ -1,7 +1,7 @@
 #ifndef BIOME_H
 #define BIOME_H
 
-#include "BlockInfo.h"
+#include "BlockManager.h"
 #include "NoiseGenerator.h"
 
 #include <fstream>
@@ -18,7 +18,7 @@ public:
 
     // @column: Should actually be Chunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
-    void genChunkColumn(void *column, const BlockInfo& blockInfo, int surfaceHeight) const;
+    void genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight) const;
 
     bool hasDesiredOccurrence(float occurrence) const {
         return minOccurrence <= occurrence && occurrence < maxOccurrence;

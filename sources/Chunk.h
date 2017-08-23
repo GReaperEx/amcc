@@ -7,7 +7,7 @@
 #include <vector>
 #include <atomic>
 
-#include "BlockInfo.h"
+#include "BlockManager.h"
 #include "NoiseGenerator.h"
 #include "BiomeManager.h"
 
@@ -70,8 +70,8 @@ public:
         neededMeshUpdate = true;
     }
 
-    void genBlocks(const BiomeManager& biomeManager, const BlockInfo& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6]);
-    void genMesh(const BlockInfo& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
+    void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6]);
+    void genMesh(const BlockManager& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();
 
@@ -96,7 +96,7 @@ public:
 
     void replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6]);
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                        const BlockInfo& blockInfo, bool ignoreAir = true);
+                        const BlockManager& blockManager, bool ignoreAir = true);
 
     bool isStateInitialized() const {
         return isStateInited;

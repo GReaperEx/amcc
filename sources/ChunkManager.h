@@ -2,7 +2,7 @@
 #define CHUNK_MANAGER_H
 
 #include "Chunk.h"
-#include "BlockInfo.h"
+#include "BlockManager.h"
 
 #include "TextureManager.h"
 #include "BoxOutline.h"
@@ -67,8 +67,6 @@ public:
 
 private:
     void findAdjacentChunks(const Chunk& center, Chunk *adjacent[6]);
-    void loadBlockInfo(TextureManager& textureManager);
-
 
     ChunkTree chunkTree;
 
@@ -82,7 +80,7 @@ private:
     std::atomic_bool userRequest;
 
     Texture *blockAtlas;
-    BlockInfo blockInfo;
+    BlockManager blockManager;
     BiomeManager biomeManager;
     std::vector<NoiseGenerator> noiseGens;
     BoxOutline boxOutline;
