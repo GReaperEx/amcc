@@ -93,6 +93,20 @@ bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,
     return false;
 }
 
+void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3& pos)
+{
+    Chunk::BlockDetails block;
+    std::vector<Structure::Data> structData;
+
+    genStruct.getBlocks(structData);
+    for (auto structBlock : structData) {
+        block.id = blockManager.getBlock(structBlock.blockName).getID();
+        block.position = structBlock.blockPos + pos;
+
+        replaceBlock(block);
+    }
+}
+
 void ChunkManager::genThreadFunc()
 {
     using namespace std::chrono;
@@ -125,7 +139,13 @@ void ChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea);
+
+            std::vector<Chunk::StructToGenerate> genStructs;
+            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea, genStructs);
+
+            for (auto genStruct : genStructs) {
+                generateStructure(structManager.getStructure(genStruct.name), genStruct.position);
+            }
 
             if (!keepRunning) {
                 return;
@@ -160,7 +180,13 @@ void ChunkManager::genThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea);
+
+            std::vector<Chunk::StructToGenerate> genStructs;
+            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea, genStructs);
+
+            for (auto genStruct : genStructs) {
+                generateStructure(structManager.getStructure(genStruct.name), genStruct.position);
+            }
 
             if (!keepRunning) {
                 return;

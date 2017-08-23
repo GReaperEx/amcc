@@ -30,6 +30,16 @@ Biome::Biome(std::ifstream& infile, const std::string& name)
                 infile.clear();
             }
             infile.ignore(100, '}');
+        } else if (property == "genStructs") {
+            infile.ignore(100, '{');
+            std::string name;
+            float freq, offset;
+            while (infile >> name >> freq >> offset) {
+                genStructs.push_back(GenerationStructs{ freq, offset, name });
+            }
+            if (!infile.eof()) {
+                infile.clear();
+            }
         } else if (property == "layers") {
             infile.ignore(100, '{');
             std::string blockName;
@@ -59,7 +69,7 @@ Biome::Biome(std::ifstream& infile, const std::string& name)
     });
 }
 
-void Biome::genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight) const
+const std::string Biome::genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const
 {
     auto it = layers.begin();
     Chunk::SBlock curBlock{ 0, 0 };
@@ -71,4 +81,11 @@ void Biome::genChunkColumn(void *column, const BlockManager& blockManager, int s
         }
         ((Chunk::SBlock*)column)[i] = curBlock;
     }
+
+    for (auto genStruct : genStructs) {
+        if (isAtPeak(x, z, genStruct, noiseGen)) {
+            return genStruct.structName;
+        }
+    }
+    return "";
 }

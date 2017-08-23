@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-void Chunk::genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGens, Chunk* adjacent[6])
+void Chunk::genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGens, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs)
 {
     // What should the smoothing distance be? That is the question.
     // 1 : 3x3
@@ -48,7 +48,10 @@ void Chunk::genBlocks(const BiomeManager& biomeManager, const BlockManager& bloc
                 biomeAvg = biomeManager.getBiome(biomeNoises[4]).calcSurfaceHeight(localPos.x, localPos.z, noiseGens[1]);
             }
 
-            biomeManager.getBiome(biomeNoises[4]).genChunkColumn(chunkData[i][j], blocks, biomeAvg);
+            std::string genStruct = biomeManager.getBiome(biomeNoises[4]).genChunkColumn(chunkData[i][j], blocks, biomeAvg, localPos.x, localPos.z, noiseGens[1]);
+            if (!genStruct.empty()) {
+                genStructs.push_back(StructToGenerate{localPos + glm::vec3(0.0f, biomeAvg+1, 0.0f), genStruct});
+            }
         }
     }
 

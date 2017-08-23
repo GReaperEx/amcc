@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "ChunkTree.h"
 #include "BiomeManager.h"
+#include "StructureManager.h"
 
 #include <set>
 #include <thread>
@@ -67,6 +68,7 @@ public:
 
 private:
     void findAdjacentChunks(const Chunk& center, Chunk *adjacent[6]);
+    void generateStructure(const Structure& genStruct, const glm::vec3& pos);
 
     ChunkTree chunkTree;
 
@@ -81,6 +83,7 @@ private:
 
     Texture *blockAtlas;
     BlockManager blockManager;
+    StructureManager structManager;
     BiomeManager biomeManager;
     std::vector<NoiseGenerator> noiseGens;
     BoxOutline boxOutline;

@@ -18,7 +18,8 @@ public:
 
     // @column: Should actually be Chunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
-    void genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight) const;
+    //! \return Potential structure to be generated on-top. Empty string if none.
+    const std::string genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const;
 
     bool hasDesiredOccurrence(float occurrence) const {
         return minOccurrence <= occurrence && occurrence < maxOccurrence;
@@ -60,6 +61,14 @@ private:
     };
     std::vector<GenerationLayer> layers;
 
+    struct GenerationStructs
+    {
+        float frequency;
+        float offset;
+        std::string structName;
+    };
+    std::vector<GenerationStructs> genStructs;
+
     // These shouldn't overlap with any other biomes
     float minOccurrence;
     float maxOccurrence;
@@ -68,12 +77,24 @@ private:
         float result = 0.0f;
 
         for (Wave curWave : waves) {
-            result += glm::pow(noiseGen.noise(x*curWave.frequency + curWave.offset,
+            result += glm::pow(noiseGen.noise((x + curWave.offset)*curWave.frequency,
                                               0.0f,
-                                              z*curWave.frequency + curWave.offset), curWave.exponent)*curWave.amplitude;
+                                              (z + curWave.offset)*curWave.frequency), curWave.exponent)*curWave.amplitude;
         }
 
         return result;
+    }
+
+    bool isAtPeak(int x, int z, const GenerationStructs& genStruct, const NoiseGenerator& noiseGen) const {
+        float baseNoise = noiseGen.noise((x + genStruct.offset)*genStruct.frequency, 0.0f, (z + genStruct.offset)*genStruct.frequency);
+        for (int i = -1; i <= 1; ++i) {
+            for (int j = -1; j <= 1; ++j) {
+                if (baseNoise < noiseGen.noise((x + i + genStruct.offset)*genStruct.frequency, 0.0f, (z + j + genStruct.offset)*genStruct.frequency)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 };
 

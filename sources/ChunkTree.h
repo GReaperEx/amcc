@@ -18,7 +18,7 @@ public:
 
     ChunkTree(): root(nullptr) {}
     ~ChunkTree() {
-        deleteAll(root);
+        eraseOldChunks(utils3d::AABBox());
         while (!chunksToErase.empty()) {
             eraseChunks();
             SDL_Delay(10);

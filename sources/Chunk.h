@@ -27,6 +27,12 @@ public:
         uint16_t meta;
     };
 
+    struct StructToGenerate
+    {
+        glm::vec3 position;
+        std::string name;
+    };
+
     static const int CHUNK_WIDTH = 16;
     static const int CHUNK_DEPTH = 16;
     static const int CHUNK_HEIGHT = 256;
@@ -70,7 +76,7 @@ public:
         neededMeshUpdate = true;
     }
 
-    void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6]);
+    void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs);
     void genMesh(const BlockManager& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
     void render();

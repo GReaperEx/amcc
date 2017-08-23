@@ -9,5 +9,9 @@ uniform sampler2D mainTexture;
 
 void main()
 {
-    color = texture(mainTexture, fragUVs).rgb*clamp(dot(fragNml, vec3(0.0, 1.0, 0.0)), 0.5, 1.0);
+    vec4 textureColor = texture(mainTexture, fragUVs);
+    if (textureColor.rgb == vec3(0.0)) {
+        discard;
+    }
+    color = textureColor.rgb*clamp(dot(fragNml, vec3(0.0, 1.0, 0.0)), 0.5, 1.0);
 }
