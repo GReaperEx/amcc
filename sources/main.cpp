@@ -7,7 +7,7 @@
 #include "TextureManager.h"
 #include "ShaderManager.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     GameEngine myEngine("MyMC", 800, 600, false);
 
