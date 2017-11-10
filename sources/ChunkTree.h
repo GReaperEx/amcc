@@ -71,7 +71,7 @@ public:
         root = nullptr;
     }
 
-    // Generates new chunks inside the active area
+    // Generates new chunks or load saved ones inside the active area
     void genNewChunks(const utils3d::AABBox& activeArea);
 
     // Sets up for deletion chunks outside the active area
@@ -115,6 +115,9 @@ private:
     void getLeafArea(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::AABBox& area, EChunkFlags flags) const;
     void getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const;
     void getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const;
+
+    bool loadChunk(const glm::vec3& pos);
+    void saveChunk(const glm::vec3& pos);
 
     union TreeLeafNode
     {

@@ -51,19 +51,24 @@ void ChunkManager::replaceBlock(const Chunk::BlockDetails& newBlock)
     glm::vec3 pos = glm::floor(newBlock.position/temp)*temp;
 
     Chunk* fetchedChunks[7];
-    fetchedChunks[0] = chunkTree.getChunk(pos);
-    fetchedChunks[1] = chunkTree.getChunk(pos + glm::vec3((float)Chunk::CHUNK_WIDTH, 0.0f, 0.0f));
-    fetchedChunks[2] = chunkTree.getChunk(pos - glm::vec3((float)Chunk::CHUNK_WIDTH, 0.0f, 0.0f));
-    fetchedChunks[3] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
-    fetchedChunks[4] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
-    fetchedChunks[5] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-    fetchedChunks[6] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
+    fetchedChunks[0] = chunkTree.getChunk(pos, ChunkTree::ALL);
+    fetchedChunks[1] = chunkTree.getChunk(pos + glm::vec3((float)Chunk::CHUNK_WIDTH, 0.0f, 0.0f), ChunkTree::ALL);
+    fetchedChunks[2] = chunkTree.getChunk(pos - glm::vec3((float)Chunk::CHUNK_WIDTH, 0.0f, 0.0f), ChunkTree::ALL);
+    fetchedChunks[3] = chunkTree.getChunk(pos + glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f), ChunkTree::ALL);
+    fetchedChunks[4] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f), ChunkTree::ALL);
+    fetchedChunks[5] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH), ChunkTree::ALL);
+    fetchedChunks[6] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH), ChunkTree::ALL);
+
+    // Force generation of a blank chunk
+    if (fetchedChunks[0] == nullptr) {
+        chunkTree.addChunk(pos);
+        fetchedChunks[0] = chunkTree.getChunk(pos, ChunkTree::ALL);
+    }
 
     if (fetchedChunks[0] != nullptr) {
         fetchedChunks[0]->replaceBlock(newBlock, &(fetchedChunks[1]));
         userRequest = true;
     }
-
 }
 
 bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,

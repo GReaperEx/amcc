@@ -25,6 +25,10 @@ public:
     {
         uint16_t id;
         uint16_t meta;
+
+        bool operator== (const SBlock& other) const {
+            return id == other.id && meta == other.meta;
+        }
     };
 
     struct StructToGenerate
@@ -47,16 +51,18 @@ public:
         isRenderable = false;
         neededMeshUpdate = false;
         neededStateUpdate = false;
+        wasEdited = false;
     }
-    Chunk(const glm::vec3& gPos, const SBlock *bakedData) {
+    Chunk(const glm::vec3& gPos, const SBlock *bakedData, bool wasGenerated) {
         position = gPos;
         memcpy(chunkData, bakedData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
 
         isStateInited = false;
-        isGenerated = true;
+        isGenerated = wasGenerated;
         isRenderable = false;
-        neededMeshUpdate = true;
+        neededMeshUpdate = wasGenerated;
         neededStateUpdate = false;
+        wasEdited = false;
     }
     ~Chunk() {
         glDeleteBuffers(3, bufferIDs);
@@ -70,10 +76,10 @@ public:
     void getBlockData(SBlock *outputData) const {
         memcpy(outputData, chunkData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
     }
-    void setBlockData(const SBlock *inputData) {
+    void setBlockData(const SBlock *inputData, bool wasGenerated) {
         memcpy(chunkData, inputData, CHUNK_HEIGHT*CHUNK_DEPTH*CHUNK_WIDTH*sizeof(SBlock));
-        isGenerated = true;
-        neededMeshUpdate = true;
+        isGenerated = wasGenerated;
+        neededMeshUpdate = wasGenerated;
     }
 
     void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs);
@@ -116,6 +122,10 @@ public:
         return isRenderable;
     }
 
+    bool wasChunkEdited() const {
+        return wasEdited;
+    }
+
     bool chunkNeedsMeshUpdate() const {
         return neededMeshUpdate;
     }
@@ -140,6 +150,7 @@ private:
     std::atomic_bool isRenderable;
     std::atomic_bool neededMeshUpdate;
     std::atomic_bool neededStateUpdate;
+    std::atomic_bool wasEdited;
 
     bool rayBlockIntersection(glm::vec3& lookBlock, const glm::vec3& boxMin, const glm::vec3& boxMax,
                               const glm::vec3& rayPos, const glm::vec3& rayDir,

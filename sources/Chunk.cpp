@@ -150,6 +150,7 @@ void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6])
     int localZ = (int)(newBlock.position.z - position.z);
 
     chunkData[localX][localZ][localY].id = newBlock.id;
+    wasEdited = true;
 
     neededMeshUpdate = true;
     if (adjacent[0] && localX == CHUNK_WIDTH-1) {
