@@ -267,6 +267,7 @@ ChunkTree::TreeLeafNode* ChunkTree::getLeaf(TreeLeafNode* node, const glm::vec3&
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
 
                             if (flagsPass) {
                                 return node->node.subdivisions[i][j][k];
@@ -306,6 +307,7 @@ void ChunkTree::getLeafArea(TreeLeafNode* node, std::vector<Chunk*>& output, con
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -342,6 +344,7 @@ void ChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& ou
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -378,6 +381,7 @@ void ChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output,
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
