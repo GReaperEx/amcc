@@ -492,19 +492,19 @@ void ChunkTree::loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& 
             }
             name.resize(nameSize);
             if (!infile.read(&name[0], nameSize)) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
             deflated.resize(deflatedSize);
             if (!infile.read((char*)(&deflated[0]), deflatedSize)) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (!infile.read((char*)(&wasGened), sizeof(wasGened))) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (chunkName == name) {
@@ -543,19 +543,19 @@ void ChunkTree::saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_
             }
             name.resize(nameSize);
             if (!infile.read(&name[0], nameSize)) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
             deflated.resize(deflatedSize);
             if (!infile.read((char*)(&deflated[0]), deflatedSize)) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (!infile.read((char*)(&wasGened), sizeof(wasGened))) {
-                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+                fatalError("I/O Error: ", "Region file \'" + regionName + "\' is malformed!");
             }
 
             if (chunkName == name) {
