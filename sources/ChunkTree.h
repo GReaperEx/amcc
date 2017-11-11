@@ -120,6 +120,9 @@ private:
     bool loadChunk(const glm::vec3& pos);
     void saveChunk(const glm::vec3& pos);
 
+    void loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& deflatedData, bool& wasGenerated) const;
+    void saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_t>& deflatedData, bool wasGenerated) const;
+
     union TreeLeafNode
     {
         TreeLeafNode() {}

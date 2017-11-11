@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <cstdio>
+
 #include <zlib.h>
 
 void ChunkTree::addChunk(const glm::vec3& position)
@@ -402,23 +404,12 @@ void ChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output,
 
 bool ChunkTree::loadChunk(const glm::vec3& pos)
 {
-    std::stringstream filepath;
-    filepath << "chunks/chunk_" << (int)pos.x << '_' << (int)pos.y << '_' << (int)pos.z;
-
-    std::ifstream infile(filepath.str(), std::ios::binary);
     Chunk::SBlock bakedData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
-    char wasGenerated;
+    bool wasGenerated;
 
-    if (!infile.is_open()) {
-        return false;
-    }
-
-    int deflatedSize;
-    if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
-        return false;
-    }
-    std::vector<uint8_t> deflatedData(deflatedSize);
-    if (!infile.read((char*)(&deflatedData[0]), deflatedSize)) {
+    std::vector<uint8_t> deflatedData;
+    loadFromBundle(pos, deflatedData, wasGenerated);
+    if (deflatedData.empty()) {
         return false;
     }
 
@@ -426,7 +417,7 @@ bool ChunkTree::loadChunk(const glm::vec3& pos)
     infstream.zalloc = Z_NULL;
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
-    infstream.avail_in = deflatedSize;
+    infstream.avail_in = deflatedData.size();
     infstream.next_in = (Bytef*)(&deflatedData[0]);
     infstream.avail_out = sizeof(bakedData);
     infstream.next_out = (Bytef*)bakedData;
@@ -435,52 +426,173 @@ bool ChunkTree::loadChunk(const glm::vec3& pos)
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
 
-    if (!infile.get(wasGenerated)) {
-        return false;
-    }
-
     Chunk *loadedChunk = getChunk(pos, ALL);
     if (!loadedChunk) {
         addChunk(pos);
         loadedChunk = getChunk(pos, ALL);
     }
 
-    loadedChunk->setBlockData((Chunk::SBlock*)bakedData, (bool)wasGenerated);
+    loadedChunk->setBlockData((Chunk::SBlock*)bakedData, wasGenerated);
 
     return true;
 }
 
 void ChunkTree::saveChunk(const glm::vec3& pos)
 {
-    std::stringstream filepath;
-    filepath << "chunks/chunk_" << (int)pos.x << '_' << (int)pos.y << '_' << (int)pos.z;
-
-    std::ofstream outfile(filepath.str(), std::ios::binary);
     Chunk::SBlock bakedData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
     uint8_t deflatedData[Chunk::CHUNK_WIDTH*Chunk::CHUNK_DEPTH*Chunk::CHUNK_HEIGHT*sizeof(Chunk::SBlock)];
 
-    if (outfile.is_open()) {
-        Chunk *chunkToSave = getChunk(pos, ALL);
-        chunkToSave->getBlockData((Chunk::SBlock*)bakedData);
+    Chunk *chunkToSave = getChunk(pos, ALL);
+    chunkToSave->getBlockData((Chunk::SBlock*)bakedData);
 
-        z_stream defstream;
-        defstream.zalloc = Z_NULL;
-        defstream.zfree = Z_NULL;
-        defstream.opaque = Z_NULL;
+    z_stream defstream;
+    defstream.zalloc = Z_NULL;
+    defstream.zfree = Z_NULL;
+    defstream.opaque = Z_NULL;
 
-        defstream.avail_in = sizeof(bakedData);
-        defstream.next_in = (Bytef *)bakedData;
-        defstream.avail_out = sizeof(deflatedData);
-        defstream.next_out = (Bytef *)deflatedData;
+    defstream.avail_in = sizeof(bakedData);
+    defstream.next_in = (Bytef *)bakedData;
+    defstream.avail_out = sizeof(deflatedData);
+    defstream.next_out = (Bytef *)deflatedData;
 
-        deflateInit(&defstream, Z_BEST_COMPRESSION);
-        deflate(&defstream, Z_FINISH);
-        deflateEnd(&defstream);
+    deflateInit(&defstream, Z_BEST_COMPRESSION);
+    deflate(&defstream, Z_FINISH);
+    deflateEnd(&defstream);
 
-        int deflatedSize = defstream.total_out;
-        outfile.write((char*)(&deflatedSize), sizeof(deflatedSize));
-        outfile.write((char*)deflatedData, deflatedSize);
+    saveToBundle(pos, std::vector<uint8_t>(deflatedData, deflatedData + defstream.total_out), chunkToSave->isChunkGenerated());
+}
 
-        outfile.put((char)chunkToSave->isChunkGenerated());
+void fatalError(const std::string& prefix, const std::string& msg);
+
+void ChunkTree::loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& deflatedData, bool& wasGenerated) const
+{
+    glm::vec3 regionIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH*256, Chunk::CHUNK_HEIGHT*256, Chunk::CHUNK_DEPTH*256));
+    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH)) - regionIndex*16.0f;
+
+    std::stringstream formatBuffer;
+    formatBuffer << "region_" << (int)regionIndex.x << '_' << (int)regionIndex.y << '_' << (int)regionIndex.z;
+    std::string regionName = formatBuffer.str();
+    formatBuffer.str("");
+    formatBuffer << "chunk_" << (int)chunkIndex.x << '_' << (int)chunkIndex.y << '_' << (int)chunkIndex.z;
+    std::string chunkName = formatBuffer.str();
+
+    deflatedData.clear();
+
+    std::ifstream infile("chunks/" + regionName, std::ios::binary);
+    if (infile.is_open()) {
+        uint8_t nameSize;
+        std::string name;
+        int deflatedSize;
+        std::vector<uint8_t> deflated;
+        char wasGened;
+
+        for (;;) {
+            if (!infile.read((char*)(&nameSize), sizeof(nameSize))) {
+                return;
+            }
+            name.resize(nameSize);
+            if (!infile.read(&name[0], nameSize)) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+            deflated.resize(deflatedSize);
+            if (!infile.read((char*)(&deflated[0]), deflatedSize)) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (!infile.read((char*)(&wasGened), sizeof(wasGened))) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (chunkName == name) {
+                break;
+            }
+        }
+        deflatedData = deflated;
+        wasGenerated = (bool)wasGened;
     }
 }
+
+void ChunkTree::saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_t>& deflatedData, bool wasGenerated) const
+{
+    glm::vec3 regionIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH*256, Chunk::CHUNK_HEIGHT*256, Chunk::CHUNK_DEPTH*256));
+    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH)) - regionIndex*16.0f;
+
+    std::stringstream formatBuffer;
+    formatBuffer << "region_" << (int)regionIndex.x << '_' << (int)regionIndex.y << '_' << (int)regionIndex.z;
+    std::string regionName = formatBuffer.str();
+    formatBuffer.str("");
+    formatBuffer << "chunk_" << (int)chunkIndex.x << '_' << (int)chunkIndex.y << '_' << (int)chunkIndex.z;
+    std::string chunkName = formatBuffer.str();
+
+    std::ifstream infile("chunks/" + regionName, std::ios::binary);
+    std::ofstream outfile("chunks/" + regionName + ".tmp", std::ios::binary);
+    if (outfile.is_open()) {
+        uint8_t nameSize;
+        std::string name;
+        int deflatedSize;
+        std::vector<uint8_t> deflated;
+        char wasGened;
+
+        for (;;) {
+            if (!infile.read((char*)(&nameSize), sizeof(nameSize))) {
+                break;
+            }
+            name.resize(nameSize);
+            if (!infile.read(&name[0], nameSize)) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+            deflated.resize(deflatedSize);
+            if (!infile.read((char*)(&deflated[0]), deflatedSize)) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (!infile.read((char*)(&wasGened), sizeof(wasGened))) {
+                fatalError("I/O Error", "Region file \'" + regionName + "\' is malformed!");
+            }
+
+            if (chunkName == name) {
+                break;
+            }
+            outfile.write((char*)(&nameSize), sizeof(nameSize));
+            outfile.write(&name[0], nameSize);
+            outfile.write((char*)(&deflatedSize), sizeof(deflatedSize));
+            outfile.write((char*)(&deflated[0]), deflatedSize);
+            outfile.write((char*)(&wasGened), sizeof(wasGened));
+        }
+
+        nameSize = chunkName.length();
+        deflatedSize = deflatedData.size();
+        wasGened = wasGenerated;
+
+        outfile.write((char*)(&nameSize), sizeof(nameSize));
+        outfile.write(&chunkName[0], nameSize);
+        outfile.write((char*)(&deflatedSize), sizeof(deflatedSize));
+        outfile.write((char*)(&deflatedData[0]), deflatedSize);
+        outfile.write((char*)(&wasGened), sizeof(wasGened));
+
+        if (infile) {
+            auto curFilePos = infile.tellg();
+            infile.seekg(0, std::ios::end);
+            auto remDataSize = infile.tellg() - curFilePos;
+            infile.seekg(curFilePos, std::ios::beg);
+
+            std::vector<uint8_t> remData(remDataSize);
+            infile.read((char*)(&remData[0]), remDataSize);
+            outfile.write((char*)(&remData[0]), remDataSize);
+
+            infile.close();
+        }
+        outfile.close();
+        remove(("chunks/" + regionName).c_str());
+        rename(("chunks/" + regionName + ".tmp").c_str(), ("chunks/" + regionName).c_str());
+    }
+}
+
