@@ -413,18 +413,38 @@ bool ChunkTree::loadChunk(const glm::vec3& pos)
         return false;
     }
 
+    std::vector<uint8_t> burnedData(Chunk::CHUNK_WIDTH*Chunk::CHUNK_DEPTH*Chunk::CHUNK_HEIGHT*sizeof(Chunk::SBlock));
+
     z_stream infstream;
     infstream.zalloc = Z_NULL;
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
     infstream.avail_in = deflatedData.size();
     infstream.next_in = (Bytef*)(&deflatedData[0]);
-    infstream.avail_out = sizeof(bakedData);
-    infstream.next_out = (Bytef*)bakedData;
+    infstream.avail_out = burnedData.size();
+    infstream.next_out = (Bytef*)(&burnedData[0]);
 
     inflateInit(&infstream);
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
+
+    // Run-length encoding for extra compression
+    int dataIndex = 0;
+    for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+        for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+            int columns = 0;
+            while (columns < Chunk::CHUNK_HEIGHT) {
+                Chunk::SBlock curBlock = *(Chunk::SBlock*)(&burnedData[dataIndex]);
+                uint8_t amount = burnedData[dataIndex + sizeof(Chunk::SBlock)];
+                dataIndex += sizeof(Chunk::SBlock) + 1;
+
+                for (int k = 0; k < amount + 1; ++k) {
+                    bakedData[i][j][columns + k] = curBlock;
+                }
+                columns += amount + 1;
+            }
+        }
+    }
 
     Chunk *loadedChunk = getChunk(pos, ALL);
     if (!loadedChunk) {
@@ -445,13 +465,35 @@ void ChunkTree::saveChunk(const glm::vec3& pos)
     Chunk *chunkToSave = getChunk(pos, ALL);
     chunkToSave->getBlockData((Chunk::SBlock*)bakedData);
 
+    // Run-length encoding for extra compression
+    std::vector<uint8_t> burnedData;
+    for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+        for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+            Chunk::SBlock curBlock = bakedData[i][j][0];
+            uint8_t amount = 0;
+            for (int k = 1; k < Chunk::CHUNK_HEIGHT; ++k) {
+                if (bakedData[i][j][k] == curBlock) {
+                    ++amount;
+                } else {
+                    burnedData.insert(burnedData.end(), (uint8_t*)(&curBlock), (uint8_t*)(&curBlock) + sizeof(curBlock));
+                    burnedData.push_back(amount);
+
+                    curBlock = bakedData[i][j][k];
+                    amount = 0;
+                }
+            }
+            burnedData.insert(burnedData.end(), (uint8_t*)(&curBlock), (uint8_t*)(&curBlock) + sizeof(curBlock));
+            burnedData.push_back(amount);
+        }
+    }
+
     z_stream defstream;
     defstream.zalloc = Z_NULL;
     defstream.zfree = Z_NULL;
     defstream.opaque = Z_NULL;
 
-    defstream.avail_in = sizeof(bakedData);
-    defstream.next_in = (Bytef *)bakedData;
+    defstream.avail_in = burnedData.size();
+    defstream.next_in = (Bytef *)(&burnedData[0]);
     defstream.avail_out = sizeof(deflatedData);
     defstream.next_out = (Bytef *)deflatedData;
 
