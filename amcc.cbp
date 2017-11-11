@@ -21,6 +21,7 @@
 					<Add option="-lGLEW" />
 					<Add option="-lGL" />
 					<Add option="-lpthread" />
+					<Add option="-lz" />
 				</Linker>
 			</Target>
 			<Target title="Linux-Release">
@@ -39,6 +40,7 @@
 					<Add option="-lGLEW" />
 					<Add option="-lGL" />
 					<Add option="-lpthread" />
+					<Add option="-lz" />
 				</Linker>
 			</Target>
 			<Target title="Windows-Debug">
@@ -58,6 +60,7 @@
 					<Add option="-lglew32" />
 					<Add option="-lopengl32" />
 					<Add option="-lwinpthread" />
+					<Add option="-lzlibstat" />
 				</Linker>
 			</Target>
 			<Target title="Windows-Release">
@@ -78,6 +81,7 @@
 					<Add option="-lglew32" />
 					<Add option="-lopengl32" />
 					<Add option="-lwinpthread" />
+					<Add option="-lzlibstat" />
 				</Linker>
 			</Target>
 		</Build>

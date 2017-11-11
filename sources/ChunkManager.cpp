@@ -65,10 +65,8 @@ void ChunkManager::replaceBlock(const Chunk::BlockDetails& newBlock)
         fetchedChunks[0] = chunkTree.getChunk(pos, ChunkTree::ALL);
     }
 
-    if (fetchedChunks[0] != nullptr) {
-        fetchedChunks[0]->replaceBlock(newBlock, &(fetchedChunks[1]));
-        userRequest = true;
-    }
+    fetchedChunks[0]->replaceBlock(newBlock, &(fetchedChunks[1]));
+    userRequest = true;
 }
 
 bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,

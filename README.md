@@ -8,4 +8,5 @@ I'm just documenting my attempt at programming a minecraft-like game from scratc
 * GLEW
 * OpenGL
 * GLM
+* zlib
 

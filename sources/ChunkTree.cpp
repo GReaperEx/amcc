@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <zlib.h>
+
 void ChunkTree::addChunk(const glm::vec3& position)
 {
     std::lock_guard<std::mutex> lck(rootBeingModified);
@@ -411,26 +413,27 @@ bool ChunkTree::loadChunk(const glm::vec3& pos)
         return false;
     }
 
-    // Simple decompression using run-length encoding
-    for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
-        for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
-            Chunk::SBlock curBlock;
-            uint8_t amount;
-
-            int columnCount = 0;
-            while (columnCount < Chunk::CHUNK_HEIGHT) {
-                if (!infile.read((char*)(&curBlock), sizeof(curBlock)) ||
-                    !infile.read((char*)(&amount), sizeof(amount))) {
-                    return false;
-                }
-
-                for (int k = 0; k < amount + 1; ++k) {
-                    bakedData[i][j][columnCount+k] = curBlock;
-                }
-                columnCount += amount + 1;
-            }
-        }
+    int deflatedSize;
+    if (!infile.read((char*)(&deflatedSize), sizeof(deflatedSize))) {
+        return false;
     }
+    std::vector<uint8_t> deflatedData(deflatedSize);
+    if (!infile.read((char*)(&deflatedData[0]), deflatedSize)) {
+        return false;
+    }
+
+    z_stream infstream;
+    infstream.zalloc = Z_NULL;
+    infstream.zfree = Z_NULL;
+    infstream.opaque = Z_NULL;
+    infstream.avail_in = deflatedSize;
+    infstream.next_in = (Bytef*)(&deflatedData[0]);
+    infstream.avail_out = sizeof(bakedData);
+    infstream.next_out = (Bytef*)bakedData;
+
+    inflateInit(&infstream);
+    inflate(&infstream, Z_NO_FLUSH);
+    inflateEnd(&infstream);
 
     if (!infile.get(wasGenerated)) {
         return false;
@@ -454,34 +457,30 @@ void ChunkTree::saveChunk(const glm::vec3& pos)
 
     std::ofstream outfile(filepath.str(), std::ios::binary);
     Chunk::SBlock bakedData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
+    uint8_t deflatedData[Chunk::CHUNK_WIDTH*Chunk::CHUNK_DEPTH*Chunk::CHUNK_HEIGHT*sizeof(Chunk::SBlock)];
 
     if (outfile.is_open()) {
         Chunk *chunkToSave = getChunk(pos, ALL);
         chunkToSave->getBlockData((Chunk::SBlock*)bakedData);
 
-        Chunk::SBlock curBlock;
-        uint8_t amount;
+        z_stream defstream;
+        defstream.zalloc = Z_NULL;
+        defstream.zfree = Z_NULL;
+        defstream.opaque = Z_NULL;
 
-        // Simple compression using run-length encoding
-        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
-            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
-                amount = 0;
-                curBlock = bakedData[i][j][0];
-                for (int k = 1; k < Chunk::CHUNK_HEIGHT; ++k) {
-                    if (curBlock == bakedData[i][j][k]) {
-                        ++amount;
-                    } else {
-                        outfile.write((char*)(&curBlock), sizeof(curBlock));
-                        outfile.write((char*)(&amount), sizeof(amount));
+        defstream.avail_in = sizeof(bakedData);
+        defstream.next_in = (Bytef *)bakedData;
+        defstream.avail_out = sizeof(deflatedData);
+        defstream.next_out = (Bytef *)deflatedData;
 
-                        amount = 0;
-                        curBlock = bakedData[i][j][k];
-                    }
-                }
-                outfile.write((char*)(&curBlock), sizeof(curBlock));
-                outfile.write((char*)(&amount), sizeof(amount));
-            }
-        }
+        deflateInit(&defstream, Z_BEST_COMPRESSION);
+        deflate(&defstream, Z_FINISH);
+        deflateEnd(&defstream);
+
+        int deflatedSize = defstream.total_out;
+        outfile.write((char*)(&deflatedSize), sizeof(deflatedSize));
+        outfile.write((char*)deflatedData, deflatedSize);
+
         outfile.put((char)chunkToSave->isChunkGenerated());
     }
 }
