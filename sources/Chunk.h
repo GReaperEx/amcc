@@ -82,6 +82,16 @@ public:
         neededMeshUpdate = wasGenerated;
     }
 
+    const SBlock getBlock(const glm::vec3& pos) const {
+        glm::vec3 localPos = glm::floor(pos - position);
+        return chunkData[(int)localPos.x][(int)localPos.z][(int)localPos.y];
+    }
+    void setBlock(const glm::vec3& pos, const SBlock& newBlock) {
+        glm::vec3 localPos = glm::floor(pos - position);
+        chunkData[(int)localPos.x][(int)localPos.z][(int)localPos.y] = newBlock;
+        wasEdited = true;
+    }
+
     void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs);
     void genMesh(const BlockManager& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
     void update(float dT);
@@ -94,7 +104,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[1]);
         glBufferData(GL_ARRAY_BUFFER, uvs.size()*sizeof(glm::vec2), &(uvs[0]), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[2]);
-        glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &(normals[0]), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, lighting.size()*sizeof(float), &(lighting[0]), GL_DYNAMIC_DRAW);
 
         vtxCount = vertices.size();
 
@@ -134,6 +144,11 @@ public:
         return neededStateUpdate;
     }
 
+    void forceUpdate() {
+        neededStateUpdate = false;
+        neededMeshUpdate = true;
+    }
+
 private:
     SBlock chunkData[CHUNK_WIDTH][CHUNK_DEPTH][CHUNK_HEIGHT];
     glm::vec3 position;
@@ -143,7 +158,7 @@ private:
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
+    std::vector<float> lighting;
 
     std::atomic_bool isStateInited;
     std::atomic_bool isGenerated;

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <queue>
 
 #include <SDL2/SDL_image.h>
 
@@ -107,6 +108,96 @@ void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3
         block.position = structBlock.blockPos + pos;
 
         replaceBlock(block);
+    }
+}
+
+void ChunkManager::addLightSource(const glm::vec3& pos, int intensity)
+{
+    std::queue<glm::vec3> lightBFS;
+
+    // I tried a simple Breadth-First Search algorithm to flood-fill everything
+    setLightLevel(pos, intensity);
+    lightBFS.push(pos);
+    while (!lightBFS.empty()) {
+        glm::vec3 curBlock = lightBFS.front();
+        lightBFS.pop();
+
+        int lightLevel = getLightLevel(curBlock);
+        glm::vec3 diffs[6] = {
+            glm::vec3(1, 0, 0), glm::vec3(-1, 0, 0),
+            glm::vec3(0, 1, 0), glm::vec3(0, -1, 0),
+            glm::vec3(0, 0, 1), glm::vec3(0, 0, -1)
+        };
+
+        for (int i = 0; i < 6; ++i) {
+            int curLevel = getLightLevel(curBlock + diffs[i]);
+            if (curLevel >= 0 && curLevel + 2 <= lightLevel) {
+                glm::vec3 nextBlock = curBlock + diffs[i];
+
+                setLightLevel(nextBlock, lightLevel - 1);
+                lightBFS.push(nextBlock);
+            }
+        }
+    }
+}
+
+void ChunkManager::remLightSource(const glm::vec3& pos)
+{
+    struct node {
+        node(const glm::vec3& p, int pi): pos(p), prevIntensity(pi) {}
+        glm::vec3 pos;
+        int prevIntensity;
+    };
+    std::queue<node> lightBFSrem;
+    std::queue<glm::vec3> lightBFSadd;
+
+    lightBFSrem.emplace(pos, getLightLevel(pos));
+    setLightLevel(pos, 0);
+
+    while (!lightBFSrem.empty()) {
+        node curNode = lightBFSrem.front();
+        lightBFSrem.pop();
+
+        glm::vec3 diffs[6] = {
+            glm::vec3(1, 0, 0), glm::vec3(-1, 0, 0),
+            glm::vec3(0, 1, 0), glm::vec3(0, -1, 0),
+            glm::vec3(0, 0, 1), glm::vec3(0, 0, -1)
+        };
+
+        for (int i = 0; i < 6; ++i) {
+            int curLevel = getLightLevel(curNode.pos + diffs[i]);
+            if (curLevel >= 0) {
+                if (curLevel != 0 && curLevel < curNode.prevIntensity) {
+                    setLightLevel(curNode.pos + diffs[i], 0);
+                    lightBFSrem.emplace(curNode.pos + diffs[i], curLevel);
+                } else if (curLevel >= curNode.prevIntensity) {
+                    lightBFSadd.push(curNode.pos + diffs[i]);
+                }
+            }
+        }
+    }
+
+    // Needs an additional pass with addLightSource algorithm to fill in the gaps
+    while (!lightBFSadd.empty()) {
+        glm::vec3 curBlock = lightBFSadd.front();
+        lightBFSadd.pop();
+
+        int lightLevel = getLightLevel(curBlock);
+        glm::vec3 diffs[6] = {
+            glm::vec3(1, 0, 0), glm::vec3(-1, 0, 0),
+            glm::vec3(0, 1, 0), glm::vec3(0, -1, 0),
+            glm::vec3(0, 0, 1), glm::vec3(0, 0, -1)
+        };
+
+        for (int i = 0; i < 6; ++i) {
+            int curLevel = getLightLevel(curBlock + diffs[i]);
+            if (curLevel >= 0 && curLevel + 2 <= lightLevel) {
+                glm::vec3 nextBlock = curBlock + diffs[i];
+
+                setLightLevel(nextBlock, lightLevel - 1);
+                lightBFSadd.push(nextBlock);
+            }
+        }
     }
 }
 

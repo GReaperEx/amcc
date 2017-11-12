@@ -1,6 +1,6 @@
 #include "Block.h"
 
-void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals) const
+void Block::getMeshData(const glm::vec3& localPos, uint16_t metas[7], const Block* sides[6], std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<float>& lighting) const
 {
     int i = localPos.x;
     int k = localPos.y;
@@ -10,6 +10,7 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
     {
     case Shape::CUBE:
         if (sides[0] && sides[0]->isTransparent()) {
+            uint8_t lightLevel = metas[0 + 1] & 0x0F;
             // RIGHT
             vertices.push_back(glm::vec3(i+1, k, j+1));
             vertices.push_back(glm::vec3(i+1, k, j));
@@ -17,9 +18,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[0][0]);
             uvs.push_back(UVs[0][1]);
             uvs.push_back(UVs[0][2]);
-            normals.push_back(glm::vec3(1, 0, 0));
-            normals.push_back(glm::vec3(1, 0, 0));
-            normals.push_back(glm::vec3(1, 0, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i+1, k, j+1));
             vertices.push_back(glm::vec3(i+1, k+1, j));
@@ -27,11 +28,12 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[0][0]);
             uvs.push_back(UVs[0][2]);
             uvs.push_back(UVs[0][3]);
-            normals.push_back(glm::vec3(1, 0, 0));
-            normals.push_back(glm::vec3(1, 0, 0));
-            normals.push_back(glm::vec3(1, 0, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
         if (sides[1] && sides[1]->isTransparent()) {
+            uint8_t lightLevel = metas[1 + 1] & 0x0F;
             // LEFT
             vertices.push_back(glm::vec3(i, k, j));
             vertices.push_back(glm::vec3(i, k, j+1));
@@ -39,9 +41,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[1][0]);
             uvs.push_back(UVs[1][1]);
             uvs.push_back(UVs[1][2]);
-            normals.push_back(glm::vec3(-1, 0, 0));
-            normals.push_back(glm::vec3(-1, 0, 0));
-            normals.push_back(glm::vec3(-1, 0, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i, k, j));
             vertices.push_back(glm::vec3(i, k+1, j+1));
@@ -49,11 +51,12 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[1][0]);
             uvs.push_back(UVs[1][2]);
             uvs.push_back(UVs[1][3]);
-            normals.push_back(glm::vec3(-1, 0, 0));
-            normals.push_back(glm::vec3(-1, 0, 0));
-            normals.push_back(glm::vec3(-1, 0, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
         if (sides[2] && sides[2]->isTransparent()) {
+            uint32_t lightLevel = metas[2 + 1] & 0x0F;
             // TOP
             vertices.push_back(glm::vec3(i, k+1, j+1));
             vertices.push_back(glm::vec3(i+1, k+1, j+1));
@@ -61,9 +64,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[2][0]);
             uvs.push_back(UVs[2][1]);
             uvs.push_back(UVs[2][2]);
-            normals.push_back(glm::vec3(0, 1, 0));
-            normals.push_back(glm::vec3(0, 1, 0));
-            normals.push_back(glm::vec3(0, 1, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i, k+1, j+1));
             vertices.push_back(glm::vec3(i+1, k+1, j));
@@ -71,11 +74,12 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[2][0]);
             uvs.push_back(UVs[2][2]);
             uvs.push_back(UVs[2][3]);
-            normals.push_back(glm::vec3(0, 1, 0));
-            normals.push_back(glm::vec3(0, 1, 0));
-            normals.push_back(glm::vec3(0, 1, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
         if (sides[3] && sides[3]->isTransparent()) {
+            uint8_t lightLevel = metas[3 + 1] & 0x0F;
             // BOTTOM
             vertices.push_back(glm::vec3(i, k, j));
             vertices.push_back(glm::vec3(i+1, k, j));
@@ -83,9 +87,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[3][0]);
             uvs.push_back(UVs[3][1]);
             uvs.push_back(UVs[3][2]);
-            normals.push_back(glm::vec3(0, -1, 0));
-            normals.push_back(glm::vec3(0, -1, 0));
-            normals.push_back(glm::vec3(0, -1, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i, k, j));
             vertices.push_back(glm::vec3(i+1, k, j+1));
@@ -93,11 +97,12 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[3][0]);
             uvs.push_back(UVs[3][2]);
             uvs.push_back(UVs[3][3]);
-            normals.push_back(glm::vec3(0, -1, 0));
-            normals.push_back(glm::vec3(0, -1, 0));
-            normals.push_back(glm::vec3(0, -1, 0));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
         if (sides[4] && sides[4]->isTransparent()) {
+            uint8_t lightLevel = metas[4 + 1] & 0x0F;
             // BACK
             vertices.push_back(glm::vec3(i, k, j+1));
             vertices.push_back(glm::vec3(i+1, k, j+1));
@@ -105,9 +110,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[4][0]);
             uvs.push_back(UVs[4][1]);
             uvs.push_back(UVs[4][2]);
-            normals.push_back(glm::vec3(0, 0, 1));
-            normals.push_back(glm::vec3(0, 0, 1));
-            normals.push_back(glm::vec3(0, 0, 1));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i, k, j+1));
             vertices.push_back(glm::vec3(i+1, k+1, j+1));
@@ -115,11 +120,12 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[4][0]);
             uvs.push_back(UVs[4][2]);
             uvs.push_back(UVs[4][3]);
-            normals.push_back(glm::vec3(0, 0, 1));
-            normals.push_back(glm::vec3(0, 0, 1));
-            normals.push_back(glm::vec3(0, 0, 1));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
         if (sides[5] && sides[5]->isTransparent()) {
+            uint8_t lightLevel = metas[5 + 1] & 0x0F;
             // FRONT
             vertices.push_back(glm::vec3(i+1, k, j));
             vertices.push_back(glm::vec3(i, k, j));
@@ -127,9 +133,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[5][0]);
             uvs.push_back(UVs[5][1]);
             uvs.push_back(UVs[5][2]);
-            normals.push_back(glm::vec3(0, 0, -1));
-            normals.push_back(glm::vec3(0, 0, -1));
-            normals.push_back(glm::vec3(0, 0, -1));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
 
             vertices.push_back(glm::vec3(i+1, k, j));
             vertices.push_back(glm::vec3(i, k+1, j));
@@ -137,12 +143,14 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
             uvs.push_back(UVs[5][0]);
             uvs.push_back(UVs[5][2]);
             uvs.push_back(UVs[5][3]);
-            normals.push_back(glm::vec3(0, 0, -1));
-            normals.push_back(glm::vec3(0, 0, -1));
-            normals.push_back(glm::vec3(0, 0, -1));
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
+            lighting.push_back(lightLevel);
         }
     break;
     case Shape::FAKE3D:
+    {
+        uint8_t lightLevel = metas[0] & 0x0F;
         // South-East side
 
         vertices.push_back(glm::vec3(i, k, j+1));
@@ -151,9 +159,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][2]);
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         vertices.push_back(glm::vec3(i, k, j+1));
         vertices.push_back(glm::vec3(i+1, k+1, j));
@@ -161,9 +169,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][2]);
         uvs.push_back(UVs[0][3]);
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, 0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         // North-West side
 
@@ -173,9 +181,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][3]);
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         vertices.push_back(glm::vec3(i+1, k, j));
         vertices.push_back(glm::vec3(i, k+1, j+1));
@@ -183,9 +191,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][3]);
         uvs.push_back(UVs[0][2]);
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, -0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
 
         // North-East side
@@ -196,9 +204,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][2]);
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         vertices.push_back(glm::vec3(i+1, k, j+1));
         vertices.push_back(glm::vec3(i, k+1, j));
@@ -206,9 +214,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][2]);
         uvs.push_back(UVs[0][3]);
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
-        normals.push_back(glm::vec3(0.7071068, 0, -0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         // South-West side
 
@@ -218,9 +226,9 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][0]);
         uvs.push_back(UVs[0][3]);
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
 
         vertices.push_back(glm::vec3(i, k, j));
         vertices.push_back(glm::vec3(i+1, k+1, j+1));
@@ -228,9 +236,10 @@ void Block::getMeshData(const glm::vec3& localPos, const Block* sides[6], std::v
         uvs.push_back(UVs[0][1]);
         uvs.push_back(UVs[0][3]);
         uvs.push_back(UVs[0][2]);
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
-        normals.push_back(glm::vec3(-0.7071068, 0, 0.7071068));
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+        lighting.push_back(lightLevel);
+    }
     break;
     }
 }

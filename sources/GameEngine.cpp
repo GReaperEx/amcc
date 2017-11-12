@@ -134,6 +134,11 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                     lookBlock.id = 0;
                     chunkManager.replaceBlock(lookBlock);
                 }
+            } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                Chunk::BlockDetails lookBlock;
+                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                    chunkManager.addLightSource(lookBlock.position + glm::vec3(0, 1, 0), 15);
+                }
             }
         break;
         case SDL_QUIT:

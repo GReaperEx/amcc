@@ -25,6 +25,7 @@ public:
         uint16_t id;   ///< Numeric ID, unique for different blocks
         uint16_t meta; ///< Holds additional information
 
+        Data(uint16_t _id, uint16_t _meta): id(_id), meta(_meta) {}
         bool operator== (const Data& other) const {
             return id == other.id;
         }
@@ -67,10 +68,10 @@ public:
      *
      * Produces triangles for every visible side of this block.
      */
-    void getMeshData(const glm::vec3& localPos, const Block* sides[6], std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals) const;
+    void getMeshData(const glm::vec3& localPos, uint16_t metas[7], const Block* sides[6], std::vector<glm::vec3>& vertices, std::vector<glm::vec2>& uvs, std::vector<float>& lighting) const;
 
 private:
-    uint16_t id;         ///< This value is unique between blocks
+    uint16_t id;
     std::string name;    ///< Internally-used name for portability
     Shape shape;         ///< The silhouette used when rendering
     glm::vec2 UVs[6][4]; ///< Texture coordinates for each and every side

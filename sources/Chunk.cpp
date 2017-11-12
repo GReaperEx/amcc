@@ -70,7 +70,7 @@ void Chunk::genMesh(const BlockManager& blocks, Chunk* adjacent[6])
 {
     vertices.clear();
     uvs.clear();
-    normals.clear();
+    lighting.clear();
 
     for (int i = 0; i < CHUNK_WIDTH; ++i) {
         for (int j = 0; j < CHUNK_DEPTH; ++j) {
@@ -80,39 +80,53 @@ void Chunk::genMesh(const BlockManager& blocks, Chunk* adjacent[6])
                 }
 
                 const Block *sides[6] = { nullptr };
+                uint16_t metas[7] = { 0 };
                 if (i == CHUNK_WIDTH - 1 && adjacent[0]) {
+                    metas[0 + 1] = adjacent[0]->chunkData[0][j][k].meta;
                     sides[0] = &blocks.getBlock(adjacent[0]->chunkData[0][j][k].id);
                 } else if (i != CHUNK_WIDTH - 1) {
+                    metas[0 + 1] = chunkData[i+1][j][k].meta;
                     sides[0] = &blocks.getBlock(chunkData[i+1][j][k].id);
                 }
                 if (i == 0 && adjacent[1]) {
+                    metas[1 + 1] = adjacent[1]->chunkData[CHUNK_WIDTH-1][j][k].meta;
                     sides[1] = &blocks.getBlock(adjacent[1]->chunkData[CHUNK_WIDTH-1][j][k].id);
                 } else if (i != 0) {
+                    metas[1 + 1] = chunkData[i-1][j][k].meta;
                     sides[1] = &blocks.getBlock(chunkData[i-1][j][k].id);
                 }
 
                 if (k == CHUNK_HEIGHT - 1 && adjacent[2]) {
+                    metas[2 + 1] = adjacent[2]->chunkData[i][j][0].meta;
                     sides[2] = &blocks.getBlock(adjacent[2]->chunkData[i][j][0].id);
                 } else if (k != CHUNK_HEIGHT - 1) {
+                    metas[2 + 1] = chunkData[i][j][k+1].meta;
                     sides[2] = &blocks.getBlock(chunkData[i][j][k+1].id);
                 }
                 if (k == 0 && adjacent[3]) {
+                    metas[3 + 1] = adjacent[3]->chunkData[i][j][CHUNK_HEIGHT-1].meta;
                     sides[3] = &blocks.getBlock(adjacent[3]->chunkData[i][j][CHUNK_HEIGHT-1].id);
                 } else if (k != 0) {
+                    metas[3 + 1] = chunkData[i][j][k-1].meta;
                     sides[3] = &blocks.getBlock(chunkData[i][j][k-1].id);
                 }
 
                 if (j == CHUNK_DEPTH - 1 && adjacent[4]) {
+                    metas[4 + 1] = adjacent[4]->chunkData[i][0][k].meta;
                     sides[4] = &blocks.getBlock(adjacent[4]->chunkData[i][0][k].id);
                 } else if (j != CHUNK_DEPTH - 1) {
+                    metas[4 + 1] = chunkData[i][j+1][k].meta;
                     sides[4] = &blocks.getBlock(chunkData[i][j+1][k].id);
                 }
                 if (j == 0 && adjacent[5]) {
+                    metas[5 + 1] = adjacent[5]->chunkData[i][CHUNK_DEPTH-1][k].meta;
                     sides[5] = &blocks.getBlock(adjacent[5]->chunkData[i][CHUNK_DEPTH-1][k].id);
                 } else if (j != 0) {
+                    metas[5 + 1] = chunkData[i][j-1][k].meta;
                     sides[5] = &blocks.getBlock(chunkData[i][j-1][k].id);
                 }
-                blocks.getBlock(chunkData[i][j][k].id).getMeshData(glm::vec3(i, k, j), sides, vertices, uvs, normals);
+                metas[0] = chunkData[i][j][k].meta;
+                blocks.getBlock(chunkData[i][j][k].id).getMeshData(glm::vec3(i, k, j), metas, sides, vertices, uvs, lighting);
             }
         }
     }
@@ -134,7 +148,7 @@ void Chunk::render()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, bufferIDs[2]);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     glDrawArrays(GL_TRIANGLES, 0, vtxCount);
 
