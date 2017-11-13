@@ -13,5 +13,5 @@ void main()
     if (textureColor.a == 0.0) {
         discard;
     }
-    color = textureColor.rgb*clamp(float(fragLight)+2.0f, 0.0f, 15.0f)*0.06666666f;
+    color = textureColor.rgb*clamp(fragLight+1.0f, 0.0f, 15.0f)*0.06666666f;
 }

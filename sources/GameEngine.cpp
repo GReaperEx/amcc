@@ -114,6 +114,8 @@ void GameEngine::clearState()
 
 bool GameEngine::handleEvent(const SDL_Event& event)
 {
+    static int curLightLevel = 0;
+
     if (!cameraEnabled || !camera.handleEvent(event)) {
         switch (event.type)
         {
@@ -125,6 +127,13 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                 } else {
                     SDL_SetRelativeMouseMode(SDL_FALSE);
                 }
+            } else if (event.key.keysym.sym == SDLK_F1) {
+                if (curLightLevel == 0) {
+                    curLightLevel = 15;
+                } else {
+                    curLightLevel = 0;
+                }
+                chunkManager.changeSunlight(curLightLevel);
             }
         break;
         case SDL_MOUSEBUTTONDOWN:
@@ -138,6 +147,11 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                 Chunk::BlockDetails lookBlock;
                 if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
                     chunkManager.addLightSource(lookBlock.position + glm::vec3(0, 1, 0), 15);
+                }
+            } else if (event.button.button == SDL_BUTTON_MIDDLE) {
+                Chunk::BlockDetails lookBlock;
+                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                    chunkManager.remLightSource(lookBlock.position + glm::vec3(0, 1, 0));
                 }
             }
         break;

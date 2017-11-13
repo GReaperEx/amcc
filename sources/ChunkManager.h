@@ -66,14 +66,16 @@ public:
         }
     }
 
-    void addLightSource(const glm::vec3& pos, int intensity);
-    void remLightSource(const glm::vec3& pos);
+    void addLightSource(const glm::vec3& pos, int intensity, bool sunlight = false);
+    void remLightSource(const glm::vec3& pos, bool sunlight = false);
+
+    void changeSunlight(int intensity);
 
 private:
     void findAdjacentChunks(const Chunk& center, Chunk *adjacent[6]);
     void generateStructure(const Structure& genStruct, const glm::vec3& pos);
 
-    int getLightLevel(const glm::vec3& pos) {
+    int getLightLevel(const glm::vec3& pos, bool sunlight) {
         glm::vec3 temp((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH);
         glm::vec3 chunkPos = glm::floor(pos/temp)*temp;
 
@@ -85,12 +87,15 @@ private:
 
         Chunk::SBlock block = fetchedChunk->getBlock(pos);
         if (blockManager.getBlock(block.id).isTransparent()) {
+            if (sunlight) {
+                return (block.meta >> 4) & 0x0F;
+            }
             return block.meta & 0x0F;
         }
         return -1;
     }
 
-    void setLightLevel(const glm::vec3& pos, int newLevel) {
+    void setLightLevel(const glm::vec3& pos, int newLevel, bool sunlight) {
         glm::vec3 temp((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH);
         glm::vec3 chunkPos = glm::floor(pos/temp)*temp;
 
@@ -102,7 +107,11 @@ private:
 
         Chunk::SBlock block = fetchedChunk->getBlock(pos);
         if (blockManager.getBlock(block.id).isTransparent()) {
-            block.meta = (block.meta & 0xFF00) | (int)glm::clamp(newLevel, 0, 15);
+            if (sunlight) {
+                block.meta = (block.meta & 0xFF0F) | ((int)glm::clamp(newLevel, 0, 15) << 4);
+            } else {
+                block.meta = (block.meta & 0xFFF0) | (int)glm::clamp(newLevel, 0, 15);
+            }
             fetchedChunk->setBlock(pos, block);
             fetchedChunk->forceUpdate();
         }

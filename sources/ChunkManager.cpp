@@ -111,18 +111,18 @@ void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3
     }
 }
 
-void ChunkManager::addLightSource(const glm::vec3& pos, int intensity)
+void ChunkManager::addLightSource(const glm::vec3& pos, int intensity, bool sunlight)
 {
     std::queue<glm::vec3> lightBFS;
 
     // I tried a simple Breadth-First Search algorithm to flood-fill everything
-    setLightLevel(pos, intensity);
+    setLightLevel(pos, intensity, sunlight);
     lightBFS.push(pos);
     while (!lightBFS.empty()) {
         glm::vec3 curBlock = lightBFS.front();
         lightBFS.pop();
 
-        int lightLevel = getLightLevel(curBlock);
+        int lightLevel = getLightLevel(curBlock, sunlight);
         glm::vec3 diffs[6] = {
             glm::vec3(1, 0, 0), glm::vec3(-1, 0, 0),
             glm::vec3(0, 1, 0), glm::vec3(0, -1, 0),
@@ -130,18 +130,18 @@ void ChunkManager::addLightSource(const glm::vec3& pos, int intensity)
         };
 
         for (int i = 0; i < 6; ++i) {
-            int curLevel = getLightLevel(curBlock + diffs[i]);
+            int curLevel = getLightLevel(curBlock + diffs[i], sunlight);
             if (curLevel >= 0 && curLevel + 2 <= lightLevel) {
                 glm::vec3 nextBlock = curBlock + diffs[i];
 
-                setLightLevel(nextBlock, lightLevel - 1);
+                setLightLevel(nextBlock, lightLevel - 1, sunlight);
                 lightBFS.push(nextBlock);
             }
         }
     }
 }
 
-void ChunkManager::remLightSource(const glm::vec3& pos)
+void ChunkManager::remLightSource(const glm::vec3& pos, bool sunlight)
 {
     struct node {
         node(const glm::vec3& p, int pi): pos(p), prevIntensity(pi) {}
@@ -151,8 +151,8 @@ void ChunkManager::remLightSource(const glm::vec3& pos)
     std::queue<node> lightBFSrem;
     std::queue<glm::vec3> lightBFSadd;
 
-    lightBFSrem.emplace(pos, getLightLevel(pos));
-    setLightLevel(pos, 0);
+    lightBFSrem.emplace(pos, getLightLevel(pos, sunlight));
+    setLightLevel(pos, 0, sunlight);
 
     while (!lightBFSrem.empty()) {
         node curNode = lightBFSrem.front();
@@ -165,10 +165,10 @@ void ChunkManager::remLightSource(const glm::vec3& pos)
         };
 
         for (int i = 0; i < 6; ++i) {
-            int curLevel = getLightLevel(curNode.pos + diffs[i]);
+            int curLevel = getLightLevel(curNode.pos + diffs[i], sunlight);
             if (curLevel >= 0) {
                 if (curLevel != 0 && curLevel < curNode.prevIntensity) {
-                    setLightLevel(curNode.pos + diffs[i], 0);
+                    setLightLevel(curNode.pos + diffs[i], 0, sunlight);
                     lightBFSrem.emplace(curNode.pos + diffs[i], curLevel);
                 } else if (curLevel >= curNode.prevIntensity) {
                     lightBFSadd.push(curNode.pos + diffs[i]);
@@ -182,7 +182,7 @@ void ChunkManager::remLightSource(const glm::vec3& pos)
         glm::vec3 curBlock = lightBFSadd.front();
         lightBFSadd.pop();
 
-        int lightLevel = getLightLevel(curBlock);
+        int lightLevel = getLightLevel(curBlock, sunlight);
         glm::vec3 diffs[6] = {
             glm::vec3(1, 0, 0), glm::vec3(-1, 0, 0),
             glm::vec3(0, 1, 0), glm::vec3(0, -1, 0),
@@ -190,15 +190,91 @@ void ChunkManager::remLightSource(const glm::vec3& pos)
         };
 
         for (int i = 0; i < 6; ++i) {
-            int curLevel = getLightLevel(curBlock + diffs[i]);
+            int curLevel = getLightLevel(curBlock + diffs[i], sunlight);
             if (curLevel >= 0 && curLevel + 2 <= lightLevel) {
                 glm::vec3 nextBlock = curBlock + diffs[i];
 
-                setLightLevel(nextBlock, lightLevel - 1);
+                setLightLevel(nextBlock, lightLevel - 1, sunlight);
                 lightBFSadd.push(nextBlock);
             }
         }
     }
+}
+
+void ChunkManager::changeSunlight(int intensity)
+{
+    glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
+    glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
+    glm::vec3 farVec(camera->getFarClipDistance());
+
+    std::vector<Chunk*> fetchedChunks;
+    glm::vec3 camPos = camera->getPosition();
+
+    chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)));
+
+    // Fill air above surface with the correct value
+    for (Chunk* chunk : fetchedChunks) {
+        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
+        chunk->getBlockData((Chunk::SBlock*)chunkData);
+
+        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+                for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
+                    if (blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                        chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(intensity, 0, 15) << 4);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        chunk->setBlockData((Chunk::SBlock*)chunkData, true);
+    }
+/*
+    // Remove previous lighting
+    for (Chunk* chunk : fetchedChunks) {
+        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
+        chunk->getBlockData((Chunk::SBlock*)chunkData);
+
+        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+                int k;
+                for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
+                    if (!blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                        ++k;
+                        break;
+                    }
+                }
+
+                if (k >= 0 && k < Chunk::CHUNK_HEIGHT) {
+                    remLightSource(chunk->getPosition() + glm::vec3(i, j, k), true);
+                }
+            }
+        }
+    }
+
+    // Fill in the new lighting
+    for (Chunk* chunk : fetchedChunks) {
+        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
+        chunk->getBlockData((Chunk::SBlock*)chunkData);
+
+        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+                int k;
+                for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
+                    if (!blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                        ++k;
+                        break;
+                    }
+                }
+
+                if (k >= 0 && k < Chunk::CHUNK_HEIGHT) {
+                    addLightSource(chunk->getPosition() + glm::vec3(i, j, k), intensity, true);
+                }
+            }
+        }
+    }
+    */
 }
 
 void ChunkManager::genThreadFunc()
