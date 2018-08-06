@@ -133,6 +133,8 @@ private:
     std::vector<NoiseGenerator> noiseGens;
     BoxOutline boxOutline;
     Camera* camera;
+
+    int curSunlight;
 };
 
 #endif // CHUNK_MANAGER_H

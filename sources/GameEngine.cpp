@@ -114,7 +114,7 @@ void GameEngine::clearState()
 
 bool GameEngine::handleEvent(const SDL_Event& event)
 {
-    static int curLightLevel = 0;
+    static int curLightLevel = 15;
 
     if (!cameraEnabled || !camera.handleEvent(event)) {
         switch (event.type)
@@ -131,7 +131,7 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                 if (curLightLevel == 0) {
                     curLightLevel = 15;
                 } else {
-                    curLightLevel = 0;
+                    --curLightLevel;
                 }
                 curWorld.changeSunlight(curLightLevel);
             }

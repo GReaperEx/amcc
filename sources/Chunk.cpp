@@ -136,6 +136,22 @@ void Chunk::genMesh(const BlockManager& blocks, Chunk* adjacent[6])
 
 void Chunk::update(float dT)
 {
+    if (isGenerated) {
+        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+                for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
+                    if (g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                        chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(curSunlight, 0, 15) << 4);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        neededLightUpdate = false;
+        neededMeshUpdate = true;
+    }
 }
 
 void Chunk::render()

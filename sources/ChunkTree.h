@@ -15,7 +15,7 @@ class ChunkTree
 public:
     enum EChunkFlags { UNINITIALIZED = 1, INITIALIZED = 2, NEED_GENERATION = 4, GENERATED = 8,
                        NEED_MESH_UPDATE = 16, NEED_STATE_UPDATE = 32, RENDERABLE = 64, EDITED = 128,
-                       ALL = 255 };
+                       NEED_LIGHT_UPDATE = 256, ALL = 511 };
 
     ChunkTree(): root(nullptr) {}
     ~ChunkTree() {

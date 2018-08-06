@@ -203,6 +203,8 @@ void World::remLightSource(const glm::vec3& pos, bool sunlight)
 
 void World::changeSunlight(int intensity)
 {
+    curSunlight = intensity;
+
     glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
     glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
     glm::vec3 farVec(camera->getFarClipDistance());
@@ -212,69 +214,9 @@ void World::changeSunlight(int intensity)
 
     chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)));
 
-    // Fill air above surface with the correct value
     for (Chunk* chunk : fetchedChunks) {
-        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
-        chunk->getBlockData((Chunk::SBlock*)chunkData);
-
-        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
-            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
-                for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
-                        chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(intensity, 0, 15) << 4);
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-        chunk->setBlockData((Chunk::SBlock*)chunkData, true);
+        chunk->setSunlight(curSunlight);
     }
-/*
-    // Remove previous lighting
-    for (Chunk* chunk : fetchedChunks) {
-        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
-        chunk->getBlockData((Chunk::SBlock*)chunkData);
-
-        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
-            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
-                int k;
-                for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (!g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
-                        ++k;
-                        break;
-                    }
-                }
-
-                if (k >= 0 && k < Chunk::CHUNK_HEIGHT) {
-                    remLightSource(chunk->getPosition() + glm::vec3(i, j, k), true);
-                }
-            }
-        }
-    }
-
-    // Fill in the new lighting
-    for (Chunk* chunk : fetchedChunks) {
-        Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
-        chunk->getBlockData((Chunk::SBlock*)chunkData);
-
-        for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
-            for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
-                int k;
-                for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (!g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
-                        ++k;
-                        break;
-                    }
-                }
-
-                if (k >= 0 && k < Chunk::CHUNK_HEIGHT) {
-                    addLightSource(chunk->getPosition() + glm::vec3(i, j, k), intensity, true);
-                }
-            }
-        }
-    }
-    */
 }
 
 void World::genThreadFunc()
@@ -380,7 +322,8 @@ void World::updateThreadFunc()
         std::vector<Chunk*> fetchedChunks;
         glm::vec3 camPos = camera->getPosition();
 
-        chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum(), ChunkTree::NEED_MESH_UPDATE);
+        chunkTree.getFrustumChunks(fetchedChunks, camera->genFrustum(),
+                                   (ChunkTree::EChunkFlags)(ChunkTree::NEED_MESH_UPDATE | ChunkTree::NEED_LIGHT_UPDATE));
 
         // Sorting the chunks from closest (to the camera), using a lambda function
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](Chunk* a, Chunk* b) {
@@ -399,7 +342,13 @@ void World::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(g_BlockManager, chunkArea);
+
+            if (curChunk->chunkNeedsLightUpdate()) {
+                curChunk->update(0.0f);
+            }
+            if (curChunk->chunkNeedsMeshUpdate()) {
+                curChunk->genMesh(g_BlockManager, chunkArea);
+            }
 
             if (userRequest) {
                 break;
@@ -415,7 +364,8 @@ void World::updateThreadFunc()
         }
 
         fetchedChunks.clear();
-        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)), ChunkTree::NEED_MESH_UPDATE);
+        chunkTree.getChunkArea(fetchedChunks, utils3d::AABBox(glm::max(camPos - farVec, chunkMin), glm::min(camPos + farVec, chunkMax)),
+                               (ChunkTree::EChunkFlags)(ChunkTree::NEED_MESH_UPDATE | ChunkTree::NEED_LIGHT_UPDATE));
         std::sort(fetchedChunks.begin(), fetchedChunks.end(), [this](Chunk* a, Chunk* b) {
             glm::vec3 aVec = a->getPosition() - camera->getPosition();
             glm::vec3 bVec = b->getPosition() - camera->getPosition();
@@ -436,7 +386,13 @@ void World::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(g_BlockManager, chunkArea);
+
+            if (curChunk->chunkNeedsLightUpdate()) {
+                curChunk->update(0.0f);
+            }
+            if (curChunk->chunkNeedsMeshUpdate()) {
+                curChunk->genMesh(g_BlockManager, chunkArea);
+            }
 
             if (userRequest) {
                 break;
@@ -469,7 +425,7 @@ void World::initfreeThreadFunc()
         activeArea.maxVec = glm::ceil(activeArea.maxVec/chunkDims)*chunkDims;
 
         chunkTree.eraseOldChunks(activeArea);
-        chunkTree.genNewChunks(activeArea, 15);
+        chunkTree.genNewChunks(activeArea, curSunlight);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

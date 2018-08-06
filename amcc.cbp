@@ -106,8 +106,6 @@
 		<Unit filename="sources/Camera.h" />
 		<Unit filename="sources/Chunk.cpp" />
 		<Unit filename="sources/Chunk.h" />
-		<Unit filename="sources/ChunkManager.cpp" />
-		<Unit filename="sources/ChunkManager.h" />
 		<Unit filename="sources/ChunkTree.cpp" />
 		<Unit filename="sources/ChunkTree.h" />
 		<Unit filename="sources/GameEngine.cpp" />
@@ -124,6 +122,8 @@
 		<Unit filename="sources/Texture.h" />
 		<Unit filename="sources/TextureManager.cpp" />
 		<Unit filename="sources/TextureManager.h" />
+		<Unit filename="sources/World.cpp" />
+		<Unit filename="sources/World.h" />
 		<Unit filename="sources/main.cpp" />
 		<Unit filename="sources/utils3d.cpp" />
 		<Unit filename="sources/utils3d.h" />

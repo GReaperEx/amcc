@@ -52,6 +52,9 @@ public:
         neededMeshUpdate = false;
         neededStateUpdate = false;
         wasEdited = false;
+        neededLightUpdate = false;
+
+        curSunlight = -1;
     }
     Chunk(const glm::vec3& gPos, const SBlock *bakedData, bool wasGenerated) {
         position = gPos;
@@ -63,6 +66,9 @@ public:
         neededMeshUpdate = wasGenerated;
         neededStateUpdate = false;
         wasEdited = false;
+        neededLightUpdate = false;
+
+        curSunlight = -1;
     }
     ~Chunk() {
         glDeleteBuffers(3, bufferIDs);
@@ -90,6 +96,17 @@ public:
         glm::vec3 localPos = glm::floor(pos - position);
         chunkData[(int)localPos.x][(int)localPos.z][(int)localPos.y] = newBlock;
         wasEdited = true;
+    }
+
+    int getSunlight() const {
+        return curSunlight;
+    }
+
+    void setSunlight(int newLight) {
+        if (newLight != curSunlight) {
+            curSunlight = newLight;
+            neededLightUpdate = true;
+        }
     }
 
     void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs);
@@ -136,6 +153,10 @@ public:
         return wasEdited;
     }
 
+    bool chunkNeedsLightUpdate() const {
+        return neededLightUpdate;
+    }
+
     bool chunkNeedsMeshUpdate() const {
         return neededMeshUpdate;
     }
@@ -152,6 +173,7 @@ public:
 private:
     SBlock chunkData[CHUNK_WIDTH][CHUNK_DEPTH][CHUNK_HEIGHT];
     glm::vec3 position;
+    int curSunlight;
 
     GLuint bufferIDs[3];
     size_t vtxCount;
@@ -163,6 +185,7 @@ private:
     std::atomic_bool isStateInited;
     std::atomic_bool isGenerated;
     std::atomic_bool isRenderable;
+    std::atomic_bool neededLightUpdate;
     std::atomic_bool neededMeshUpdate;
     std::atomic_bool neededStateUpdate;
     std::atomic_bool wasEdited;
