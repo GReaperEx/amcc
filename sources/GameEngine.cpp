@@ -27,8 +27,8 @@ void GameEngine::renderAll()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw stuff here
-    chunkManager.renderChunks(g_ShaderManager, vp);
-    chunkManager.renderOutline(g_ShaderManager, vp);
+    curWorld.renderChunks(g_ShaderManager, vp);
+    curWorld.renderOutline(g_ShaderManager, vp);
 
     SDL_GL_SwapWindow(mainWindow);
 }
@@ -101,7 +101,7 @@ void GameEngine::initState(const std::string& wndName, int wndWidth, int wndHeig
     noiseGens.push_back(NoiseGenerator(123));
     noiseGens.push_back(NoiseGenerator(123*2));
 
-    chunkManager.init(g_TextureManager, noiseGens, &camera);
+    curWorld.init(g_TextureManager, noiseGens, &camera);
 }
 
 void GameEngine::clearState()
@@ -133,25 +133,25 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                 } else {
                     curLightLevel = 0;
                 }
-                chunkManager.changeSunlight(curLightLevel);
+                curWorld.changeSunlight(curLightLevel);
             }
         break;
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 Chunk::BlockDetails lookBlock;
-                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                if (curWorld.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
                     lookBlock.id = 0;
-                    chunkManager.replaceBlock(lookBlock);
+                    curWorld.replaceBlock(lookBlock);
                 }
             } else if (event.button.button == SDL_BUTTON_RIGHT) {
                 Chunk::BlockDetails lookBlock;
-                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
-                    chunkManager.addLightSource(lookBlock.position + glm::vec3(0, 1, 0), 15);
+                if (curWorld.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                    curWorld.addLightSource(lookBlock.position + glm::vec3(0, 1, 0), 15);
                 }
             } else if (event.button.button == SDL_BUTTON_MIDDLE) {
                 Chunk::BlockDetails lookBlock;
-                if (chunkManager.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
-                    chunkManager.remLightSource(lookBlock.position + glm::vec3(0, 1, 0));
+                if (curWorld.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
+                    curWorld.remLightSource(lookBlock.position + glm::vec3(0, 1, 0));
                 }
             }
         break;

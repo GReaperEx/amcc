@@ -1,4 +1,4 @@
-#include "ChunkManager.h"
+#include "World.h"
 
 #include <chrono>
 #include <fstream>
@@ -8,7 +8,7 @@
 
 #include <SDL2/SDL_image.h>
 
-void ChunkManager::init(TextureManager& g_TextureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera)
+void World::init(TextureManager& g_TextureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera)
 {
     this->noiseGens = noiseGens;
     this->camera = camera;
@@ -18,12 +18,12 @@ void ChunkManager::init(TextureManager& g_TextureManager, const std::vector<Nois
 
     boxOutline.init(glm::vec3(0, 0, 0));
 
-    chunkGenThread = std::thread(&ChunkManager::genThreadFunc, this);
-    meshUpdateThread = std::thread(&ChunkManager::updateThreadFunc, this);
-    initAndFreeThread = std::thread(&ChunkManager::initfreeThreadFunc, this);
+    chunkGenThread = std::thread(&World::genThreadFunc, this);
+    meshUpdateThread = std::thread(&World::updateThreadFunc, this);
+    initAndFreeThread = std::thread(&World::initfreeThreadFunc, this);
 }
 
-void ChunkManager::renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp)
+void World::renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp)
 {
     g_ShaderManager.use("default");
     blockAtlas->use();
@@ -46,7 +46,7 @@ void ChunkManager::renderChunks(ShaderManager& g_ShaderManager, const glm::mat4&
     chunkTree.initChunks();
 }
 
-void ChunkManager::replaceBlock(const Chunk::BlockDetails& newBlock)
+void World::replaceBlock(const Chunk::BlockDetails& newBlock)
 {
     glm::vec3 temp((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH);
     glm::vec3 pos = glm::floor(newBlock.position/temp)*temp;
@@ -70,7 +70,7 @@ void ChunkManager::replaceBlock(const Chunk::BlockDetails& newBlock)
     userRequest = true;
 }
 
-bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,
+bool World::traceRayToBlock(Chunk::BlockDetails& lookBlock,
                      const glm::vec3& rayOrigin, const glm::vec3& rayDir, bool ignoreAir)
 {
     Chunk::BlockDetails closest;
@@ -97,7 +97,7 @@ bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,
     return false;
 }
 
-void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3& pos)
+void World::generateStructure(const Structure& genStruct, const glm::vec3& pos)
 {
     Chunk::BlockDetails block;
     std::vector<Structure::Data> structData;
@@ -111,7 +111,7 @@ void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3
     }
 }
 
-void ChunkManager::addLightSource(const glm::vec3& pos, int intensity, bool sunlight)
+void World::addLightSource(const glm::vec3& pos, int intensity, bool sunlight)
 {
     std::queue<glm::vec3> lightBFS;
 
@@ -141,7 +141,7 @@ void ChunkManager::addLightSource(const glm::vec3& pos, int intensity, bool sunl
     }
 }
 
-void ChunkManager::remLightSource(const glm::vec3& pos, bool sunlight)
+void World::remLightSource(const glm::vec3& pos, bool sunlight)
 {
     struct node {
         node(const glm::vec3& p, int pi): pos(p), prevIntensity(pi) {}
@@ -201,7 +201,7 @@ void ChunkManager::remLightSource(const glm::vec3& pos, bool sunlight)
     }
 }
 
-void ChunkManager::changeSunlight(int intensity)
+void World::changeSunlight(int intensity)
 {
     glm::vec3 chunkMin((int)MIN_CHUNK_X, (int)MIN_CHUNK_Y, (int)MIN_CHUNK_Z);
     glm::vec3 chunkMax((int)MAX_CHUNK_X, (int)MAX_CHUNK_Y, (int)MAX_CHUNK_Z);
@@ -277,7 +277,7 @@ void ChunkManager::changeSunlight(int intensity)
     */
 }
 
-void ChunkManager::genThreadFunc()
+void World::genThreadFunc()
 {
     using namespace std::chrono;
     while (keepRunning) {
@@ -367,7 +367,7 @@ void ChunkManager::genThreadFunc()
     }
 }
 
-void ChunkManager::updateThreadFunc()
+void World::updateThreadFunc()
 {
     using namespace std::chrono;
     while (keepRunning) {
@@ -454,7 +454,7 @@ void ChunkManager::updateThreadFunc()
     }
 }
 
-void ChunkManager::initfreeThreadFunc()
+void World::initfreeThreadFunc()
 {
     while (keepRunning) {
         glm::vec3 cameraPos = camera->getPosition();

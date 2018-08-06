@@ -12,7 +12,7 @@
 #include "TextureManager.h"
 #include "Camera.h"
 
-#include "ChunkManager.h"
+#include "World.h"
 #include "NoiseGenerator.h"
 
 class GameEngine
@@ -65,7 +65,7 @@ private:
 
     Uint32 lastUpdate;
 
-    ChunkManager chunkManager;
+    World curWorld;
     std::vector<NoiseGenerator> noiseGens;
 };
 

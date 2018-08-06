@@ -17,7 +17,7 @@
 #include <atomic>
 #include <condition_variable>
 
-class ChunkManager
+class World
 {
 public:
     // Setting ultimate limits for generation
@@ -29,13 +29,13 @@ public:
     static const int MAX_CHUNK_Y = Chunk::CHUNK_HEIGHT;
 
 public:
-    ChunkManager() {
+    World() {
         blockAtlas = nullptr;
         keepRunning = true;
         userRequest = false;
     }
 
-    ~ChunkManager() {
+    ~World() {
         if (blockAtlas) {
             blockAtlas->drop();
         }

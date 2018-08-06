@@ -118,9 +118,11 @@
 		<Unit filename="sources/ShaderManager.h" />
 		<Unit filename="sources/Structure.cpp" />
 		<Unit filename="sources/Structure.h" />
+		<Unit filename="sources/StructureManager.cpp" />
 		<Unit filename="sources/StructureManager.h" />
 		<Unit filename="sources/Texture.cpp" />
 		<Unit filename="sources/Texture.h" />
+		<Unit filename="sources/TextureManager.cpp" />
 		<Unit filename="sources/TextureManager.h" />
 		<Unit filename="sources/main.cpp" />
 		<Unit filename="sources/utils3d.cpp" />

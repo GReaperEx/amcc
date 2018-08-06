@@ -17,7 +17,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& g_TextureManager)
 
     std::ifstream infile(rootDir + "blocks.cfg");
     if (!infile.is_open()) {
-        fatalError("ChunkManager_Error: ", "Unable to open block config file.");
+        fatalError("World_Error: ", "Unable to open block config file.");
     }
 
     struct blockTiles
