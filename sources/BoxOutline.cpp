@@ -23,13 +23,13 @@ void BoxOutline::init(const glm::vec3& color)
     lineColor = color;
 }
 
-void BoxOutline::render(ShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3& position)
+void BoxOutline::render(ShaderManager& g_ShaderManager, const glm::mat4& vp, const glm::vec3& position)
 {
-    shaderManager.use("simple");
+    g_ShaderManager.use("simple");
 
     glm::mat4 mvp = vp*(glm::translate(glm::mat4(1), position + glm::vec3(0.5f, 0.5f, 0.5f))*glm::scale(glm::mat4(1), glm::vec3(1.025f, 1.025f, 1.025f)));
-    glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
-    glUniform3fv(shaderManager.getUniformLocation("lineColor"), 1, &(lineColor[0]));
+    glUniformMatrix4fv(g_ShaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
+    glUniform3fv(g_ShaderManager.getUniformLocation("lineColor"), 1, &(lineColor[0]));
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, bufferID);

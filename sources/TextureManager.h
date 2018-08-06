@@ -50,4 +50,6 @@ private:
     std::map<std::string, Texture*> textureMap;
 };
 
+extern TextureManager g_TextureManager;
+
 #endif // TEXTURE_MANAGER_H

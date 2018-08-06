@@ -73,7 +73,7 @@ public:
     }
 
     // Generates new chunks or load saved ones inside the active area
-    void genNewChunks(const utils3d::AABBox& activeArea);
+    void genNewChunks(const utils3d::AABBox& activeArea, int curSunlight);
 
     // Sets up for deletion chunks outside the active area
     void eraseOldChunks(const utils3d::AABBox& activeArea);

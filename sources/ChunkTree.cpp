@@ -69,7 +69,7 @@ void ChunkTree::remChunk(const glm::vec3& position)
     }
 }
 
-void ChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
+void ChunkTree::genNewChunks(const utils3d::AABBox& activeArea, int curSunlight)
 {
     utils3d::AABBox treeArea;
     if (root) {
@@ -84,6 +84,23 @@ void ChunkTree::genNewChunks(const utils3d::AABBox& activeArea)
                     if (!loadChunk(chunkBox.minVec)) {
                         addChunk(chunkBox.minVec);
                     }
+
+                    Chunk* chunk = getChunk(chunkBox.minVec, ChunkTree::ALL);
+                    Chunk::SBlock chunkData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
+                    chunk->getBlockData((Chunk::SBlock*)chunkData);
+
+                    for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
+                        for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
+                            for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
+                                if (g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                                    chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(curSunlight, 0, 15) << 4);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    chunk->setBlockData((Chunk::SBlock*)chunkData, chunk->isChunkGenerated());
                 }
             }
         }
@@ -509,7 +526,7 @@ void fatalError(const std::string& prefix, const std::string& msg);
 void ChunkTree::loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& deflatedData, bool& wasGenerated) const
 {
     glm::vec3 regionIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH*256, Chunk::CHUNK_HEIGHT*256, Chunk::CHUNK_DEPTH*256));
-    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH)) - regionIndex*256.0f;
+    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3((int)Chunk::CHUNK_WIDTH, (int)Chunk::CHUNK_HEIGHT, (int)Chunk::CHUNK_DEPTH)) - regionIndex*256.0f;
 
     std::stringstream formatBuffer;
     formatBuffer << "region_" << (int)regionIndex.x << '_' << (int)regionIndex.y << '_' << (int)regionIndex.z;
@@ -561,7 +578,7 @@ void ChunkTree::loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& 
 void ChunkTree::saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_t>& deflatedData, bool wasGenerated) const
 {
     glm::vec3 regionIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH*256, Chunk::CHUNK_HEIGHT*256, Chunk::CHUNK_DEPTH*256));
-    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3(Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_DEPTH)) - regionIndex*256.0f;
+    glm::vec3 chunkIndex = glm::floor(chunkPos/glm::vec3((int)Chunk::CHUNK_WIDTH, (int)Chunk::CHUNK_HEIGHT, (int)Chunk::CHUNK_DEPTH)) - regionIndex*256.0f;
 
     std::stringstream formatBuffer;
     formatBuffer << "region_" << (int)regionIndex.x << '_' << (int)regionIndex.y << '_' << (int)regionIndex.z;

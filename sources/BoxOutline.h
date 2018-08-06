@@ -22,7 +22,7 @@ public:
     }
 
     void init(const glm::vec3& color);
-    void render(ShaderManager& shaderManager, const glm::mat4& vp, const glm::vec3& position);
+    void render(ShaderManager& g_ShaderManager, const glm::mat4& vp, const glm::vec3& position);
 
 private:
     GLuint bufferID;

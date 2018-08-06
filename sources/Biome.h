@@ -19,7 +19,7 @@ public:
     // @column: Should actually be Chunk::SBlock
     // TODO: Find a more elegant way to circumvent that circular dependency
     //! \return Potential structure to be generated on-top. Empty string if none.
-    const std::string genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const;
+    const std::string genChunkColumn(void *column, const BlockManager& g_BlockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const;
 
     bool hasDesiredOccurrence(float occurrence) const {
         return minOccurrence <= occurrence && occurrence < maxOccurrence;

@@ -191,7 +191,7 @@ void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6])
 }
 
 bool Chunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
-                             const glm::vec3& rayDir, const BlockManager& blockManager, bool ignoreAir)
+                             const glm::vec3& rayDir, const BlockManager& g_BlockManager, bool ignoreAir)
 {
     glm::vec3 chunkBoxMin = position;
     glm::vec3 chunkBoxMax = position + glm::vec3((float)CHUNK_WIDTH, (float)CHUNK_HEIGHT, (float)CHUNK_DEPTH);
@@ -200,7 +200,7 @@ bool Chunk::traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin,
     if (rayBlockIntersection(lookBlock.position, chunkBoxMin, chunkBoxMax, rayOrigin, rayDir, rayDir_inverted, ignoreAir)) {
         glm::vec3 localPos = lookBlock.position - position;
         lookBlock.id = chunkData[(int)glm::floor(localPos.x)][(int)glm::floor(localPos.z)][(int)glm::floor(localPos.y)].id;
-        lookBlock.name = blockManager.getBlock(lookBlock.id).getName();
+        lookBlock.name = g_BlockManager.getBlock(lookBlock.id).getName();
         return true;
     }
     return false;

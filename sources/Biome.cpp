@@ -69,15 +69,15 @@ Biome::Biome(std::ifstream& infile, const std::string& name)
     });
 }
 
-const std::string Biome::genChunkColumn(void *column, const BlockManager& blockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const
+const std::string Biome::genChunkColumn(void *column, const BlockManager& g_BlockManager, int surfaceHeight, int x, int z, const NoiseGenerator& noiseGen) const
 {
     auto it = layers.begin();
     Chunk::SBlock curBlock{ 0, 0 };
-    curBlock.id = blockManager.getBlock(it->blockName).getID();
+    curBlock.id = g_BlockManager.getBlock(it->blockName).getID();
 
     for (int i = surfaceHeight; i >= 0; --i) {
         while (it->maxDepth < (surfaceHeight - i)) {
-            curBlock.id = blockManager.getBlock((++it)->blockName).getID();
+            curBlock.id = g_BlockManager.getBlock((++it)->blockName).getID();
         }
         ((Chunk::SBlock*)column)[i] = curBlock;
     }

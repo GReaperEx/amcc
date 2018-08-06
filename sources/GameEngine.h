@@ -60,9 +60,6 @@ private:
 
     GLuint vtxArrayID;
 
-    ShaderManager shaderManager;
-    TextureManager textureManager;
-
     Camera camera;
     bool cameraEnabled;
 

@@ -27,8 +27,8 @@ void GameEngine::renderAll()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw stuff here
-    chunkManager.renderChunks(shaderManager, vp);
-    chunkManager.renderOutline(shaderManager, vp);
+    chunkManager.renderChunks(g_ShaderManager, vp);
+    chunkManager.renderOutline(g_ShaderManager, vp);
 
     SDL_GL_SwapWindow(mainWindow);
 }
@@ -84,8 +84,8 @@ void GameEngine::initState(const std::string& wndName, int wndWidth, int wndHeig
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (!shaderManager.addShader("default", "shaders/default.vert", "shaders/default.frag") ||
-        !shaderManager.addShader("simple", "shaders/simple.vert", "shaders/simple.frag")) {
+    if (!g_ShaderManager.addShader("default", "shaders/default.vert", "shaders/default.frag") ||
+        !g_ShaderManager.addShader("simple", "shaders/simple.vert", "shaders/simple.frag")) {
         fatalError("Program_Error: ", "Failed to load required shaders.");
     }
 
@@ -101,7 +101,7 @@ void GameEngine::initState(const std::string& wndName, int wndWidth, int wndHeig
     noiseGens.push_back(NoiseGenerator(123));
     noiseGens.push_back(NoiseGenerator(123*2));
 
-    chunkManager.init(textureManager, noiseGens, &camera);
+    chunkManager.init(g_TextureManager, noiseGens, &camera);
 }
 
 void GameEngine::clearState()

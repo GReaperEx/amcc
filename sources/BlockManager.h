@@ -31,10 +31,12 @@ public:
      *
      * Loads all defined blocks from config file
      */
-    Texture* loadBlockInfo(TextureManager& textureManager);
+    Texture* loadBlockInfo(TextureManager& g_TextureManager);
 
 private:
     std::vector<Block> blocks;
 };
+
+extern BlockManager g_BlockManager;
 
 #endif // BLOCK_MANAGER_H

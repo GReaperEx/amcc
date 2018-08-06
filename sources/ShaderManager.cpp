@@ -168,3 +168,5 @@ GLuint ShaderManager::load(const std::string& vert_path, const std::string& frag
 
 	return ID;
 }
+
+ShaderManager g_ShaderManager;

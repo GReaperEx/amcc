@@ -8,12 +8,12 @@
 
 #include <SDL2/SDL_image.h>
 
-void ChunkManager::init(TextureManager& textureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera)
+void ChunkManager::init(TextureManager& g_TextureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera)
 {
     this->noiseGens = noiseGens;
     this->camera = camera;
 
-    blockAtlas = blockManager.loadBlockInfo(textureManager);
+    blockAtlas = g_BlockManager.loadBlockInfo(g_TextureManager);
     biomeManager.loadBiomeInfo();
 
     boxOutline.init(glm::vec3(0, 0, 0));
@@ -23,9 +23,9 @@ void ChunkManager::init(TextureManager& textureManager, const std::vector<NoiseG
     initAndFreeThread = std::thread(&ChunkManager::initfreeThreadFunc, this);
 }
 
-void ChunkManager::renderChunks(ShaderManager& shaderManager, const glm::mat4& vp)
+void ChunkManager::renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp)
 {
-    shaderManager.use("default");
+    g_ShaderManager.use("default");
     blockAtlas->use();
 
     std::vector<Chunk*> fetchedChunks;
@@ -37,7 +37,7 @@ void ChunkManager::renderChunks(ShaderManager& shaderManager, const glm::mat4& v
         }
 
         glm::mat4 mvp = vp*glm::translate(glm::mat4(1), curChunk->getPosition());
-        glUniformMatrix4fv(shaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
+        glUniformMatrix4fv(g_ShaderManager.getUniformLocation("MVP"), 1, GL_FALSE, &(mvp[0][0]));
 
         curChunk->render();
     }
@@ -81,7 +81,7 @@ bool ChunkManager::traceRayToBlock(Chunk::BlockDetails& lookBlock,
     chunkTree.getIntersectingChunks(fetchedChunks, rayOrigin, rayDir_inverted);
 
     for (Chunk* curChunk : fetchedChunks) {
-        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, blockManager, ignoreAir)) {
+        if (curChunk->traceRayToBlock(lookBlock, rayOrigin, rayDir, g_BlockManager, ignoreAir)) {
             glm::vec3 distVec1 = closest.position - rayOrigin;
             glm::vec3 distVec2 = lookBlock.position - rayOrigin;
             if (glm::dot(distVec2, distVec2) < glm::dot(distVec1, distVec1)) {
@@ -104,7 +104,7 @@ void ChunkManager::generateStructure(const Structure& genStruct, const glm::vec3
 
     genStruct.getBlocks(structData);
     for (auto structBlock : structData) {
-        block.id = blockManager.getBlock(structBlock.blockName).getID();
+        block.id = g_BlockManager.getBlock(structBlock.blockName).getID();
         block.position = structBlock.blockPos + pos;
 
         replaceBlock(block);
@@ -220,7 +220,7 @@ void ChunkManager::changeSunlight(int intensity)
         for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
             for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
                 for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                    if (g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
                         chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(intensity, 0, 15) << 4);
                     } else {
                         break;
@@ -240,7 +240,7 @@ void ChunkManager::changeSunlight(int intensity)
             for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
                 int k;
                 for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (!blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                    if (!g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
                         ++k;
                         break;
                     }
@@ -262,7 +262,7 @@ void ChunkManager::changeSunlight(int intensity)
             for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
                 int k;
                 for (k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
-                    if (!blockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
+                    if (!g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
                         ++k;
                         break;
                     }
@@ -311,10 +311,10 @@ void ChunkManager::genThreadFunc()
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
 
             std::vector<Chunk::StructToGenerate> genStructs;
-            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea, genStructs);
+            curChunk->genBlocks(biomeManager, g_BlockManager, noiseGens, chunkArea, genStructs);
 
             for (auto genStruct : genStructs) {
-                generateStructure(structManager.getStructure(genStruct.name), genStruct.position);
+                generateStructure(g_StructureManager.getStructure(genStruct.name), genStruct.position);
             }
 
             if (!keepRunning) {
@@ -352,10 +352,10 @@ void ChunkManager::genThreadFunc()
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
 
             std::vector<Chunk::StructToGenerate> genStructs;
-            curChunk->genBlocks(biomeManager, blockManager, noiseGens, chunkArea, genStructs);
+            curChunk->genBlocks(biomeManager, g_BlockManager, noiseGens, chunkArea, genStructs);
 
             for (auto genStruct : genStructs) {
-                generateStructure(structManager.getStructure(genStruct.name), genStruct.position);
+                generateStructure(g_StructureManager.getStructure(genStruct.name), genStruct.position);
             }
 
             if (!keepRunning) {
@@ -399,7 +399,7 @@ void ChunkManager::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(blockManager, chunkArea);
+            curChunk->genMesh(g_BlockManager, chunkArea);
 
             if (userRequest) {
                 break;
@@ -436,7 +436,7 @@ void ChunkManager::updateThreadFunc()
             chunkArea[3] = chunkTree.getChunk(pos - glm::vec3(0.0f, (float)Chunk::CHUNK_HEIGHT, 0.0f));
             chunkArea[4] = chunkTree.getChunk(pos + glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
-            curChunk->genMesh(blockManager, chunkArea);
+            curChunk->genMesh(g_BlockManager, chunkArea);
 
             if (userRequest) {
                 break;
@@ -469,7 +469,7 @@ void ChunkManager::initfreeThreadFunc()
         activeArea.maxVec = glm::ceil(activeArea.maxVec/chunkDims)*chunkDims;
 
         chunkTree.eraseOldChunks(activeArea);
-        chunkTree.genNewChunks(activeArea);
+        chunkTree.genNewChunks(activeArea, 15);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

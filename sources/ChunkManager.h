@@ -52,17 +52,17 @@ public:
         }
     }
 
-    void init(TextureManager& textureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera);
-    void renderChunks(ShaderManager& shaderManager, const glm::mat4& vp);
+    void init(TextureManager& g_TextureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera);
+    void renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp);
 
     void replaceBlock(const Chunk::BlockDetails& newBlock);
     bool traceRayToBlock(Chunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                          bool ignoreAir = true);
 
-    void renderOutline(ShaderManager& shaderManager, const glm::mat4& vp) {
+    void renderOutline(ShaderManager& g_ShaderManager, const glm::mat4& vp) {
         Chunk::BlockDetails lookBlock;
         if (traceRayToBlock(lookBlock, camera->getPosition(), camera->getLookVector())) {
-            boxOutline.render(shaderManager, vp, lookBlock.position);
+            boxOutline.render(g_ShaderManager, vp, lookBlock.position);
         }
     }
 
@@ -86,7 +86,7 @@ private:
         }
 
         Chunk::SBlock block = fetchedChunk->getBlock(pos);
-        if (blockManager.getBlock(block.id).isTransparent()) {
+        if (g_BlockManager.getBlock(block.id).isTransparent()) {
             if (sunlight) {
                 return (block.meta >> 4) & 0x0F;
             }
@@ -106,7 +106,7 @@ private:
         }
 
         Chunk::SBlock block = fetchedChunk->getBlock(pos);
-        if (blockManager.getBlock(block.id).isTransparent()) {
+        if (g_BlockManager.getBlock(block.id).isTransparent()) {
             if (sunlight) {
                 block.meta = (block.meta & 0xFF0F) | ((int)glm::clamp(newLevel, 0, 15) << 4);
             } else {
@@ -129,8 +129,6 @@ private:
     std::atomic_bool userRequest;
 
     Texture *blockAtlas;
-    BlockManager blockManager;
-    StructureManager structManager;
     BiomeManager biomeManager;
     std::vector<NoiseGenerator> noiseGens;
     BoxOutline boxOutline;

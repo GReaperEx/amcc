@@ -8,7 +8,7 @@
 
 void fatalError(const std::string& prefix, const std::string& msg);
 
-Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
+Texture* BlockManager::loadBlockInfo(TextureManager& g_TextureManager)
 {
     using std::cout;
     using std::endl;
@@ -159,7 +159,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
         }
         SDL_FreeSurface(it->second);
     }
-    textureManager.addTexture("blockAtlas", new Texture(atlas));
+    g_TextureManager.addTexture("blockAtlas", new Texture(atlas));
     SDL_FreeSurface(atlas);
 
     for (auto it = tileMap.begin(); it != tileMap.end(); ++it) {
@@ -175,5 +175,7 @@ Texture* BlockManager::loadBlockInfo(TextureManager& textureManager)
 
     std::sort(blocks.begin(), blocks.end());
 
-    return textureManager.getTexture("blockAtlas");
+    return g_TextureManager.getTexture("blockAtlas");
 }
+
+BlockManager g_BlockManager;

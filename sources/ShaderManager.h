@@ -27,4 +27,6 @@ private:
     std::map<std::string, GLuint> fetchedUniforms;
 };
 
+extern ShaderManager g_ShaderManager;
+
 #endif // SHADER_MANAGER_H

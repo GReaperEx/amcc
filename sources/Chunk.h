@@ -118,7 +118,7 @@ public:
 
     void replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6]);
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-                        const BlockManager& blockManager, bool ignoreAir = true);
+                        const BlockManager& g_BlockManager, bool ignoreAir = true);
 
     bool isStateInitialized() const {
         return isStateInited;

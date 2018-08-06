@@ -25,4 +25,6 @@ private:
     std::map<std::string, Structure> structs;
 };
 
+extern StructureManager g_StructureManager;
+
 #endif // STRUCTURE_MANAGER_H
