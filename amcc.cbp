@@ -60,7 +60,7 @@
 					<Add option="-lglew32" />
 					<Add option="-lopengl32" />
 					<Add option="-lwinpthread" />
-					<Add option="-lzlibstat" />
+					<Add option="-lz" />
 				</Linker>
 			</Target>
 			<Target title="Windows-Release">
@@ -81,13 +81,14 @@
 					<Add option="-lglew32" />
 					<Add option="-lopengl32" />
 					<Add option="-lwinpthread" />
-					<Add option="-lzlibstat" />
+					<Add option="-lz" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-DGLM_FORCE_RADIANS" />
+			<Add option="-DGLM_ENABLE_EXPERIMENTAL" />
 		</Compiler>
 		<Unit filename="shaders/default.frag" />
 		<Unit filename="shaders/default.vert" />

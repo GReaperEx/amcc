@@ -640,6 +640,7 @@ void ChunkTree::saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_
             infile.close();
         }
         outfile.close();
+        infile.close();
         remove(("chunks/" + regionName).c_str());
         rename(("chunks/" + regionName + ".tmp").c_str(), ("chunks/" + regionName).c_str());
     }
