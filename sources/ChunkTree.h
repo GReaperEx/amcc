@@ -117,11 +117,46 @@ private:
     void getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const;
     void getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const;
 
-    bool loadChunk(const glm::vec3& pos);
-    void saveChunk(const glm::vec3& pos);
+    struct vec3Cmp
+    {
+        bool operator() (const glm::vec3& a, const glm::vec3& b) const {
+            if (a.x < b.x) {
+                return true;
+            } else if (a.x > b.x) {
+                return false;
+            }
 
-    void loadFromBundle(const glm::vec3& chunkPos, std::vector<uint8_t>& deflatedData, bool& wasGenerated) const;
-    void saveToBundle(const glm::vec3& chunkPos, const std::vector<uint8_t>& deflatedData, bool wasGenerated) const;
+            if (a.y < b.y) {
+                return true;
+            } else if (a.y > b.y) {
+                return false;
+            }
+
+            if (a.z < b.z) {
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    void loadChunks(std::map<glm::vec3, Chunk*, vec3Cmp>& chunksToLoad);
+    void saveChunks(const std::vector<glm::vec3>& chunksToSave);
+
+    struct BundleChunk
+    {
+        bool gotLoaded;
+        std::vector<uint8_t> deflatedData;
+        bool wasGenerated;
+
+        BundleChunk(): gotLoaded(false), deflatedData(), wasGenerated(false) {}
+        BundleChunk(bool loaded, std::vector<uint8_t> data, bool wasGened)
+        : gotLoaded(loaded), deflatedData(data), wasGenerated(wasGened)
+        {}
+    };
+
+    void loadFromBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToLoad) const;
+    void saveToBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToSave) const;
 
     union TreeLeafNode
     {
