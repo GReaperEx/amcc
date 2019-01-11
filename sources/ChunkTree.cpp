@@ -642,7 +642,7 @@ void ChunkTree::saveToBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksTo
         std::ifstream infile("chunks/" + it->first, std::ios::binary);
         std::ofstream tempfile("chunks/" + it->first + ".tmp", std::ios::binary);
         if (infile.is_open()) {
-            while (!it->second.empty()) {
+            for (;;) {
                 if (!infile.read((char*)(&nameSize), sizeof(nameSize))) {
                     break;
                 }

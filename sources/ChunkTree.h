@@ -20,6 +20,7 @@ public:
     ChunkTree(): root(nullptr) {}
     ~ChunkTree() {
         eraseOldChunks(utils3d::AABBox());
+        std::cout << "Saving loaded chunks. Might take a while..." << std::endl;
         while (!chunksToErase.empty()) {
             eraseChunks();
             SDL_Delay(10);
