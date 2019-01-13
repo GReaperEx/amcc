@@ -20,7 +20,7 @@ public:
     ChunkTree(): root(nullptr) {}
     ~ChunkTree() {
         eraseOldChunks(utils3d::AABBox());
-        std::cout << "Saving loaded chunks. Might take a while..." << std::endl;
+        std::cout << "Saving loaded chunks..." << std::endl;
         while (!chunksToErase.empty()) {
             eraseChunks();
             SDL_Delay(10);
@@ -118,30 +118,7 @@ private:
     void getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const glm::vec3& rayPos, const glm::vec3& rayDir_inverted, EChunkFlags flags) const;
     void getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output, const utils3d::Frustum& frustum, EChunkFlags flags) const;
 
-    struct vec3Cmp
-    {
-        bool operator() (const glm::vec3& a, const glm::vec3& b) const {
-            if (a.x < b.x) {
-                return true;
-            } else if (a.x > b.x) {
-                return false;
-            }
-
-            if (a.y < b.y) {
-                return true;
-            } else if (a.y > b.y) {
-                return false;
-            }
-
-            if (a.z < b.z) {
-                return true;
-            }
-
-            return false;
-        }
-    };
-
-    void loadChunks(std::map<glm::vec3, Chunk*, vec3Cmp>& chunksToLoad);
+    void loadChunks(std::map<glm::vec3, Chunk*>& chunksToLoad);
     void saveChunks(const std::vector<glm::vec3>& chunksToSave);
 
     struct BundleChunk
@@ -156,8 +133,8 @@ private:
         {}
     };
 
-    void loadFromBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToLoad) const;
-    void saveToBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToSave) const;
+    void loadFromBundle(std::map<glm::vec3, BundleChunk>& chunksToLoad) const;
+    void saveToBundle(std::map<glm::vec3, BundleChunk>& chunksToSave) const;
 
     union TreeLeafNode
     {
@@ -194,5 +171,15 @@ private:
     };
     std::vector<ChunkTimeBundle> chunksToErase;
 };
+
+namespace std
+{
+    template<> struct less<glm::vec3> {
+        bool operator() (const glm::vec3& lhs, const glm::vec3& rhs) const
+        {
+            return lhs.x < rhs.x || (lhs.x == rhs.x && (lhs.y < rhs.y || (lhs.x == rhs.x && lhs.z < rhs.z)));
+        }
+    };
+}
 
 #endif // CHUNK_TREE_H

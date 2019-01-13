@@ -79,7 +79,7 @@ void ChunkTree::genNewChunks(const utils3d::AABBox& activeArea, int curSunlight)
         treeArea = root->node.boundaries;
     }
 
-    std::map<glm::vec3, Chunk*, vec3Cmp> newChunks;
+    std::map<glm::vec3, Chunk*> newChunks;
     for (int i = activeArea.minVec.x; i < activeArea.maxVec.x; i += Chunk::CHUNK_WIDTH) {
         for (int j = activeArea.minVec.y; j < activeArea.maxVec.y; j += Chunk::CHUNK_HEIGHT) {
             for (int k = activeArea.minVec.z; k < activeArea.maxVec.z; k += Chunk::CHUNK_DEPTH) {
@@ -426,9 +426,9 @@ void ChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output,
     }
 }
 
-void ChunkTree::loadChunks(std::map<glm::vec3, Chunk*, vec3Cmp>& chunksToLoad)
+void ChunkTree::loadChunks(std::map<glm::vec3, Chunk*>& chunksToLoad)
 {
-    std::map<glm::vec3, BundleChunk, vec3Cmp> bundlesToLoad;
+    std::map<glm::vec3, BundleChunk> bundlesToLoad;
     for (auto it = chunksToLoad.begin(); it != chunksToLoad.end(); ++it) {
         bundlesToLoad[it->first] = BundleChunk();
     }
@@ -485,7 +485,7 @@ void ChunkTree::loadChunks(std::map<glm::vec3, Chunk*, vec3Cmp>& chunksToLoad)
 
 void ChunkTree::saveChunks(const std::vector<glm::vec3>& chunksToSave)
 {
-    std::map<glm::vec3, BundleChunk, vec3Cmp> bundleChunks;
+    std::map<glm::vec3, BundleChunk> bundleChunks;
     for (auto chunk : chunksToSave) {
         Chunk::SBlock bakedData[Chunk::CHUNK_WIDTH][Chunk::CHUNK_DEPTH][Chunk::CHUNK_HEIGHT];
         uint8_t deflatedData[Chunk::CHUNK_WIDTH*Chunk::CHUNK_DEPTH*Chunk::CHUNK_HEIGHT*sizeof(Chunk::SBlock)];
@@ -537,7 +537,7 @@ void ChunkTree::saveChunks(const std::vector<glm::vec3>& chunksToSave)
 
 void fatalError(const std::string& prefix, const std::string& msg);
 
-void ChunkTree::loadFromBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToLoad) const
+void ChunkTree::loadFromBundle(std::map<glm::vec3, BundleChunk>& chunksToLoad) const
 {
     std::map<std::string, std::map<std::string, BundleChunk*>> regionChunkInfo;
 
@@ -608,7 +608,7 @@ void ChunkTree::loadFromBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunks
     }
 }
 
-void ChunkTree::saveToBundle(std::map<glm::vec3, BundleChunk, vec3Cmp>& chunksToSave) const
+void ChunkTree::saveToBundle(std::map<glm::vec3, BundleChunk>& chunksToSave) const
 {
     std::map<std::string, std::map<std::string, BundleChunk*>> regionChunkInfo;
 
