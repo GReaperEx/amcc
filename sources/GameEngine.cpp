@@ -141,7 +141,7 @@ bool GameEngine::handleEvent(const SDL_Event& event)
                 Chunk::BlockDetails lookBlock;
                 if (curWorld.traceRayToBlock(lookBlock, camera.getPosition(), camera.getLookVector())) {
                     lookBlock.id = 0;
-                    curWorld.replaceBlock(lookBlock);
+                    curWorld.replaceBlock(lookBlock, true);
                 }
             } else if (event.button.button == SDL_BUTTON_RIGHT) {
                 Chunk::BlockDetails lookBlock;

@@ -133,7 +133,7 @@ public:
         return position;
     }
 
-    void replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6]);
+    void replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6], bool edited = false);
     bool traceRayToBlock(BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                         const BlockManager& g_BlockManager, bool ignoreAir = true);
 

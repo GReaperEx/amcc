@@ -55,7 +55,7 @@ public:
     void init(TextureManager& g_TextureManager, const std::vector<NoiseGenerator>& noiseGens, Camera* camera);
     void renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp);
 
-    void replaceBlock(const Chunk::BlockDetails& newBlock);
+    void replaceBlock(const Chunk::BlockDetails& newBlock, bool edited = false);
     bool traceRayToBlock(Chunk::BlockDetails& lookBlock, const glm::vec3& rayOrigin, const glm::vec3& rayDir,
                          bool ignoreAir = true);
 

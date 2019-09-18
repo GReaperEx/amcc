@@ -46,7 +46,7 @@ void World::renderChunks(ShaderManager& g_ShaderManager, const glm::mat4& vp)
     chunkTree.initChunks();
 }
 
-void World::replaceBlock(const Chunk::BlockDetails& newBlock)
+void World::replaceBlock(const Chunk::BlockDetails& newBlock, bool edited)
 {
     glm::vec3 temp((float)Chunk::CHUNK_WIDTH, (float)Chunk::CHUNK_HEIGHT, (float)Chunk::CHUNK_DEPTH);
     glm::vec3 pos = glm::floor(newBlock.position/temp)*temp;
@@ -66,8 +66,8 @@ void World::replaceBlock(const Chunk::BlockDetails& newBlock)
         fetchedChunks[0] = chunkTree.getChunk(pos, ChunkTree::ALL);
     }
 
-    fetchedChunks[0]->replaceBlock(newBlock, &(fetchedChunks[1]));
-    userRequest = true;
+    fetchedChunks[0]->replaceBlock(newBlock, &(fetchedChunks[1]), edited);
+    userRequest = edited;
 }
 
 bool World::traceRayToBlock(Chunk::BlockDetails& lookBlock,

@@ -183,14 +183,14 @@ void Chunk::render()
     glDisableVertexAttribArray(0);
 }
 
-void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6])
+void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6], bool edited)
 {
     int localX = (int)(newBlock.position.x - position.x);
     int localY = (int)(newBlock.position.y - position.y);
     int localZ = (int)(newBlock.position.z - position.z);
 
     chunkData[localX][localZ][localY].id = newBlock.id;
-    wasEdited = true;
+    wasEdited = edited;
 
     neededMeshUpdate = true;
     if (adjacent[0] && localX == CHUNK_WIDTH-1) {
