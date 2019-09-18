@@ -56,6 +56,8 @@ void Chunk::genBlocks(const BiomeManager& biomeManager, const BlockManager& bloc
     }
 
     isGenerated = true;
+    newSunlight = 15;
+    update(adjacent);
     neededMeshUpdate = true;
 
     for (int i = 0; i < 6; i++) {
@@ -134,9 +136,11 @@ void Chunk::genMesh(const BlockManager& blocks, Chunk* adjacent[6])
     neededStateUpdate = true;
 }
 
-void Chunk::update(float dT)
+void Chunk::update(Chunk* adjacent[6])
 {
-    if (isGenerated) {
+    if (isGenerated && newSunlight != curSunlight) {
+        curSunlight = newSunlight;
+
         for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
             for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
                 for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
@@ -151,6 +155,12 @@ void Chunk::update(float dT)
 
         neededLightUpdate = false;
         neededMeshUpdate = true;
+
+        for (int i = 0; i < 6; ++i) {
+            if (adjacent[i]) {
+                adjacent[i]->neededLightUpdate = true;
+            }
+        }
     }
 }
 

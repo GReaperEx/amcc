@@ -104,14 +104,14 @@ public:
 
     void setSunlight(int newLight) {
         if (newLight != curSunlight) {
-            curSunlight = newLight;
+            newSunlight = newLight;
             neededLightUpdate = true;
         }
     }
 
     void genBlocks(const BiomeManager& biomeManager, const BlockManager& blocks, const std::vector<NoiseGenerator>& noiseGen, Chunk* adjacent[6], std::vector<StructToGenerate>& genStructs);
     void genMesh(const BlockManager& blocks, Chunk* adjacent[6]); // Just generates data, doesn't call OpenGL
-    void update(float dT);
+    void update(Chunk* adjacent[6]);
     void render();
 
     // This should only be called by the main rendering thread
@@ -174,6 +174,7 @@ private:
     SBlock chunkData[CHUNK_WIDTH][CHUNK_DEPTH][CHUNK_HEIGHT];
     glm::vec3 position;
     int curSunlight;
+    int newSunlight;
 
     GLuint bufferIDs[3];
     size_t vtxCount;

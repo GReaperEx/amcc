@@ -344,7 +344,7 @@ void World::updateThreadFunc()
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
 
             if (curChunk->chunkNeedsLightUpdate()) {
-                curChunk->update(0.0f);
+                curChunk->update(chunkArea);
             }
             if (curChunk->chunkNeedsMeshUpdate()) {
                 curChunk->genMesh(g_BlockManager, chunkArea);
@@ -388,7 +388,7 @@ void World::updateThreadFunc()
             chunkArea[5] = chunkTree.getChunk(pos - glm::vec3(0.0f, 0.0f, (float)Chunk::CHUNK_DEPTH));
 
             if (curChunk->chunkNeedsLightUpdate()) {
-                curChunk->update(0.0f);
+                curChunk->update(chunkArea);
             }
             if (curChunk->chunkNeedsMeshUpdate()) {
                 curChunk->genMesh(g_BlockManager, chunkArea);

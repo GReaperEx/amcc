@@ -286,13 +286,13 @@ ChunkTree::TreeLeafNode* ChunkTree::getLeaf(TreeLeafNode* node, const glm::vec3&
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
-                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && isInited && temp->chunkNeedsLightUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && temp->wasChunkEdited());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && temp->chunkNeedsLightUpdate());
 
                             if (flagsPass) {
                                 return node->node.subdivisions[i][j][k];
@@ -327,13 +327,13 @@ void ChunkTree::getLeafArea(TreeLeafNode* node, std::vector<Chunk*>& output, con
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
-                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && isInited && temp->chunkNeedsLightUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && temp->wasChunkEdited());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && temp->chunkNeedsLightUpdate());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -365,13 +365,13 @@ void ChunkTree::getIntersectingLeafs(TreeLeafNode* node, std::vector<Chunk*>& ou
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
-                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && isInited && temp->chunkNeedsLightUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && temp->wasChunkEdited());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && temp->chunkNeedsLightUpdate());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
@@ -403,13 +403,13 @@ void ChunkTree::getFrustumLeafs(TreeLeafNode* node, std::vector<Chunk*>& output,
                             bool isInited = temp->isStateInitialized();
                             flagsPass = ((flags & ChunkTree::UNINITIALIZED) && !isInited);
                             flagsPass = flagsPass || ((flags & ChunkTree::INITIALIZED) && isInited);
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && isInited && !temp->isChunkGenerated());
-                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && isInited && temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_GENERATION) && !temp->isChunkGenerated());
+                            flagsPass = flagsPass || ((flags & ChunkTree::GENERATED) && temp->isChunkGenerated());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_MESH_UPDATE) && isInited && temp->chunkNeedsMeshUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::NEED_STATE_UPDATE) && isInited && temp->chunkNeedsStateUpdate());
                             flagsPass = flagsPass || ((flags & ChunkTree::RENDERABLE) && isInited && temp->isChunkRenderable());
-                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && isInited && temp->wasChunkEdited());
-                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && isInited && temp->chunkNeedsLightUpdate());
+                            flagsPass = flagsPass || ((flags & ChunkTree::EDITED) && temp->wasChunkEdited());
+                            flagsPass = flagsPass || ((flags & ChunkTree::NEED_LIGHT_UPDATE) && temp->chunkNeedsLightUpdate());
 
                             if (flagsPass) {
                                 output.push_back(node->node.subdivisions[i][j][k]->leaf.chunk);
