@@ -138,14 +138,12 @@ void Chunk::genMesh(const BlockManager& blocks, Chunk* adjacent[6])
 
 void Chunk::update(Chunk* adjacent[6])
 {
-    if (isGenerated && newSunlight != curSunlight) {
-        curSunlight = newSunlight;
-
+    if (isGenerated) {
         for (int i = 0; i < Chunk::CHUNK_WIDTH; ++i) {
             for (int j = 0; j < Chunk::CHUNK_DEPTH; ++j) {
                 for (int k = Chunk::CHUNK_HEIGHT - 1; k >= 0; --k) {
                     if (g_BlockManager.getBlock(chunkData[i][j][k].id).isTransparent()) {
-                        chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(curSunlight, 0, 15) << 4);
+                        chunkData[i][j][k].meta = (chunkData[i][j][k].meta & 0xFF0F) | (glm::clamp(newSunlight, 0, 15) << 4);
                     } else {
                         break;
                     }
@@ -156,9 +154,13 @@ void Chunk::update(Chunk* adjacent[6])
         neededLightUpdate = false;
         neededMeshUpdate = true;
 
-        for (int i = 0; i < 6; ++i) {
-            if (adjacent[i]) {
-                adjacent[i]->neededLightUpdate = true;
+        if (newSunlight != curSunlight) {
+            curSunlight = newSunlight;
+
+            for (int i = 0; i < 6; ++i) {
+                if (adjacent[i]) {
+                    adjacent[i]->neededLightUpdate = true;
+                }
             }
         }
     }
@@ -192,7 +194,7 @@ void Chunk::replaceBlock(const BlockDetails& newBlock, Chunk *adjacent[6], bool 
     chunkData[localX][localZ][localY].id = newBlock.id;
     wasEdited = edited;
 
-    neededMeshUpdate = true;
+    neededLightUpdate = true;
     if (adjacent[0] && localX == CHUNK_WIDTH-1) {
         adjacent[0]->neededStateUpdate = false;
         adjacent[0]->neededMeshUpdate = true;
